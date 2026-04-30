@@ -68,7 +68,7 @@ const Usuarios = () => {
         <div className="main-content">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1.5rem', flexWrap: 'wrap' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.8rem', fontWeight: '900', letterSpacing: '-1.2px', marginBottom: '0.2rem' }}>Personal EntryTech</h2>
+                    <h2 style={{ fontSize: '1.8rem', fontWeight: '900', letterSpacing: '-1.2px', marginBottom: '0.2rem' }}>Personal</h2>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>{usuarios.length} registros activos</p>
                 </div>
                 
