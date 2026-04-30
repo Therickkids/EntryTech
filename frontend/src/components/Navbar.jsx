@@ -18,7 +18,6 @@ const Navbar = () => {
     const toggleSidebar = () => setIsOpen(!isOpen);
 
     const navLinks = [
-        { path: '/carnet', label: '🪪 Mi Carnet' },
         { path: '/simulador', label: '📲 Simulador' },
     ];
 
@@ -31,22 +30,34 @@ const Navbar = () => {
 
     return (
         <>
-            <nav className="navbar">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <button onClick={toggleSidebar} className="menu-toggle" title="Menú">
-                        {isOpen ? '✕' : '☰'}
+            <nav className="navbar" style={{ padding: '0.75rem 1.25rem' }}>
+                {/* IZQUIERDA: Menú y Marca */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <button onClick={toggleSidebar} className="menu-toggle" style={{ fontSize: '1.2rem' }}>
+                        ☰
                     </button>
-                    <div className="navbar-brand">EntryTech</div>
+                    <div className="navbar-brand" style={{ fontSize: '1.1rem' }}>EntryTech</div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                    <div style={{
-                        width: '32px', height: '32px', borderRadius: '50%',
-                        background: '#f1f5f9', color: 'var(--primary-color)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: '800', fontSize: '0.8rem', border: '1px solid var(--border)'
-                    }}>
-                        {usuario.foto_url ? <img src={usuario.foto_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : inicial}
+                {/* DERECHA: Mi Carnet + Perfil */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <Link to="/carnet" className={`nav-link ${location.pathname === '/carnet' ? 'active' : ''}`} style={{ fontSize: '0.85rem', padding: '0.5rem 0.75rem' }}>
+                        🪪 Mi Carnet
+                    </Link>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', borderLeft: '1px solid var(--border)', paddingLeft: '1rem' }}>
+                        <div style={{
+                            width: '30px', height: '30px', borderRadius: '50%',
+                            background: '#f1f5f9', color: 'var(--primary-color)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontWeight: '800', fontSize: '0.75rem', border: '1px solid var(--border)',
+                            overflow: 'hidden'
+                        }}>
+                            {usuario.foto_url ? <img src={usuario.foto_url} alt="P" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : inicial}
+                        </div>
+                        <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-main)', display: window.innerWidth > 600 ? 'block' : 'none' }}>
+                            {usuario.nombre?.split(' ')[0]}
+                        </span>
                     </div>
                 </div>
             </nav>
