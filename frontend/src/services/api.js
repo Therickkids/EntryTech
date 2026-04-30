@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// Al usar un proxy o subirlo a internet, usamos la ruta relativa
+// URL del backend en Render (PRODUCCIÓN)
 const api = axios.create({
-    baseURL: '/api',
+    baseURL: 'https://entrytech-backend.onrender.com/api',
 });
 
 // Interceptor para agregar token a peticiones
