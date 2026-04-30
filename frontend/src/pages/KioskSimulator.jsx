@@ -40,21 +40,35 @@ const KioskSimulator = () => {
                 { facingMode: "environment" },
                 config,
                 async (decodedText) => {
-                    if (loading) return;
+                    // BLOQUEO INSTANTÁNEO: Si ya estamos procesando, ignoramos cualquier otra lectura
+                    if (loading || scannerRef.current?.isPaused) return;
+                    
                     setLoading(true);
                     setResultado(null);
                     
                     try {
+                        // 1. Apagar el escáner de inmediato para no leer más
+                        if (scannerRef.current) {
+                            await scannerRef.current.stop();
+                            scannerRef.current = null;
+                        }
+
+                        // 2. Enviar a la base de datos
                         const res = await api.post('/acceso', { codigo: decodedText });
                         setResultado({ exito: true, mensaje: res.data.mensaje, tipo: res.data.tipo });
-                        // Apagar después de éxito
-                        setTimeout(() => handleStopCamera(), 2000);
+                        
+                        // 3. Resetear el estado de la cámara
+                        setCameraActive(false);
                     } catch (error) {
                         setResultado({
                             exito: false,
                             mensaje: error.response?.data?.mensaje || 'Error de conexión o código inválido.'
                         });
-                        setTimeout(() => setResultado(null), 3000);
+                        // Si falló, permitimos que el usuario vuelva a intentar después de 3 segundos
+                        setTimeout(() => {
+                            setResultado(null);
+                            setCameraActive(false); // Apagamos para que pueda darle al botón de nuevo
+                        }, 3000);
                     } finally {
                         setLoading(false);
                     }
