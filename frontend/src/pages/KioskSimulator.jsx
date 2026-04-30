@@ -18,99 +18,79 @@ const KioskSimulator = () => {
         };
     }, []);
 
-    const handleStartCamera = () => {
+    const handleStartCamera = async () => {
         if (cameraActive) return;
 
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             setResultado({
                 exito: false,
-                mensaje: '⚠️ Tu navegador no permite acceso a la cámara. Usa Safari en iPhone o Chrome en Android.'
+                mensaje: '⚠️ Tu navegador no permite acceso a la cámara. Usa Safari en iPhone.'
             });
             return;
         }
 
-        // Crear el escáner directamente
-        const scanner = new Html5QrcodeScanner(
-            "reader",
-            { 
-                fps: 10, 
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0,
-                rememberLastUsedCamera: true,
-                showTorchButtonIfSupported: true
-            },
-            false
-        );
-        
-        scannerRef.current = scanner;
+        try {
+            const html5QrCode = new Html5Qrcode("reader");
+            scannerRef.current = html5QrCode;
 
-        scanner.render(async (decodedText) => {
-            if (loading) return;
-            setLoading(true);
-            setResultado(null);
-            
-            try {
-                // Detener escaneo mientras procesamos
-                scanner.pause(true);
-                
-                const res = await api.post('/acceso', { codigo: decodedText });
-                setResultado({ exito: true, mensaje: res.data.mensaje, tipo: res.data.tipo });
-                
-                // Si fue éxito, apagamos la cámara
-                setTimeout(() => handleStopCamera(), 2000);
-            } catch (error) {
-                setResultado({
-                    exito: false,
-                    mensaje: error.response?.data?.mensaje || 'Error de conexión o código inválido.'
-                });
-                setTimeout(() => {
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+            // Forzar cámara trasera (environment)
+            await html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                async (decodedText) => {
+                    if (loading) return;
+                    setLoading(true);
                     setResultado(null);
-                    if (scannerRef.current) scanner.resume();
-                }, 3000);
-            } finally {
-                setLoading(false);
-            }
-        }, (error) => {
-            // Errores silenciosos de escaneo (no encontró QR en el frame)
-        });
+                    
+                    try {
+                        const res = await api.post('/acceso', { codigo: decodedText });
+                        setResultado({ exito: true, mensaje: res.data.mensaje, tipo: res.data.tipo });
+                        // Apagar después de éxito
+                        setTimeout(() => handleStopCamera(), 2000);
+                    } catch (error) {
+                        setResultado({
+                            exito: false,
+                            mensaje: error.response?.data?.mensaje || 'Error de conexión o código inválido.'
+                        });
+                        setTimeout(() => setResultado(null), 3000);
+                    } finally {
+                        setLoading(false);
+                    }
+                },
+                (errorMessage) => {
+                    // Escaneo en curso...
+                }
+            );
 
-        // PARCHE PARA IPHONE: Forzar playsinline en el video que crea la librería
-        setTimeout(() => {
+            // Parche extra para iOS: asegurar que el video tenga playsinline
             const video = document.querySelector('#reader video');
             if (video) {
                 video.setAttribute('playsinline', 'true');
                 video.setAttribute('muted', 'true');
-                video.play().catch(() => {});
             }
-        }, 1000);
 
-        setCameraActive(true);
+            setCameraActive(true);
+        } catch (err) {
+            setResultado({
+                exito: false,
+                mensaje: `⚠️ Error al iniciar cámara: ${err}`
+            });
+        }
     };
 
     const handleStopCamera = async () => {
-        // 1. Destruir el escáner de la librería
         if (scannerRef.current) {
             try {
-                await scannerRef.current.clear();
+                await scannerRef.current.stop();
             } catch (e) {}
             scannerRef.current = null;
         }
-
-        // 2. FORZAR apagado del hardware: parar todos los tracks de video activos
-        try {
-            const videos = document.querySelectorAll('video');
-            videos.forEach(video => {
-                if (video.srcObject) {
-                    video.srcObject.getTracks().forEach(track => track.stop());
-                    video.srcObject = null;
-                }
-            });
-        } catch (e) {}
-
-        // 3. Limpiar el contenedor del DOM
+        
         const readerEl = document.getElementById('reader');
         if (readerEl) readerEl.innerHTML = '';
-
+        
         setCameraActive(false);
     };
 
