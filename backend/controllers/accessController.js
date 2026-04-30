@@ -64,10 +64,10 @@ export const registrarAcceso = async (req, res) => {
 export const getAccesos = async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT a.id, a.tipo, a.fecha, u.nombre, u.correo 
+            SELECT a.id, a.tipo, a.fecha, u.nombre, u.correo, u.cedula
             FROM accesos a
             INNER JOIN usuarios u ON a.usuario_id = u.id
-            ORDER BY u.nombre ASC, a.fecha ASC
+            ORDER BY a.fecha DESC
         `);
         res.json(result.rows);
     } catch (error) {
