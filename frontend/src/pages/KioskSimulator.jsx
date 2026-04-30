@@ -21,61 +21,70 @@ const KioskSimulator = () => {
     const handleStartCamera = () => {
         if (cameraActive) return;
 
-        // Verificar si el navegador tiene acceso a getUserMedia antes de intentar
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             setResultado({
                 exito: false,
-                mensaje: '⚠️ Tu navegador no permite acceso a la cámara. Si estás en iPhone, necesitas abrir la página con "https://" en lugar de "http://". Consulta al administrador.'
+                mensaje: '⚠️ Tu navegador no permite acceso a la cámara. Usa Safari en iPhone o Chrome en Android.'
             });
             return;
         }
 
-        // Probar primero que el navegador nos da acceso real a la cámara
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                // Parar el stream de prueba, el escáner lo abrirá solo
-                stream.getTracks().forEach(t => t.stop());
+        // Crear el escáner directamente
+        const scanner = new Html5QrcodeScanner(
+            "reader",
+            { 
+                fps: 10, 
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0,
+                rememberLastUsedCamera: true,
+                showTorchButtonIfSupported: true
+            },
+            false
+        );
+        
+        scannerRef.current = scanner;
 
-                const scanner = new Html5QrcodeScanner(
-                    "reader",
-                    { fps: 10, qrbox: { width: 220, height: 220 } },
-                    false
-                );
-                scannerRef.current = scanner;
-
-                scanner.render(async (decodedText) => {
-                    if (loading) return;
-                    setLoading(true);
-                    setResultado(null);
-                    scanner.pause(true);
-
-                    try {
-                        const res = await api.post('/acceso', { codigo: decodedText });
-                        setResultado({ exito: true, mensaje: res.data.mensaje, tipo: res.data.tipo });
-                        await handleStopCamera();
-                    } catch (error) {
-                        setResultado({
-                            exito: false,
-                            mensaje: error.response?.data?.mensaje || 'Error de conexión o código inválido.'
-                        });
-                        setTimeout(() => {
-                            setResultado(null);
-                            if (scannerRef.current) scanner.resume();
-                        }, 3000);
-                    } finally {
-                        setLoading(false);
-                    }
-                }, () => {});
-
-                setCameraActive(true);
-            })
-            .catch(err => {
-                // Error real al intentar abrir la cámara (iOS HTTP, permisos denegados, etc.)
+        scanner.render(async (decodedText) => {
+            if (loading) return;
+            setLoading(true);
+            setResultado(null);
+            
+            try {
+                // Detener escaneo mientras procesamos
+                scanner.pause(true);
+                
+                const res = await api.post('/acceso', { codigo: decodedText });
+                setResultado({ exito: true, mensaje: res.data.mensaje, tipo: res.data.tipo });
+                
+                // Si fue éxito, apagamos la cámara
+                setTimeout(() => handleStopCamera(), 2000);
+            } catch (error) {
                 setResultado({
                     exito: false,
-                    mensaje: `⚠️ No se pudo acceder a la cámara. En iPhone necesitas usar "https://". Error: ${err.message || err.name}`
+                    mensaje: error.response?.data?.mensaje || 'Error de conexión o código inválido.'
                 });
-            });
+                setTimeout(() => {
+                    setResultado(null);
+                    if (scannerRef.current) scanner.resume();
+                }, 3000);
+            } finally {
+                setLoading(false);
+            }
+        }, (error) => {
+            // Errores silenciosos de escaneo (no encontró QR en el frame)
+        });
+
+        // PARCHE PARA IPHONE: Forzar playsinline en el video que crea la librería
+        setTimeout(() => {
+            const video = document.querySelector('#reader video');
+            if (video) {
+                video.setAttribute('playsinline', 'true');
+                video.setAttribute('muted', 'true');
+                video.play().catch(() => {});
+            }
+        }, 1000);
+
+        setCameraActive(true);
     };
 
     const handleStopCamera = async () => {
