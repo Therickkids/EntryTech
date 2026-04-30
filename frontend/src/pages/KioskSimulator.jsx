@@ -18,201 +18,205 @@ const KioskSimulator = () => {
         };
     }, []);
 
+    // Función para generar sonidos profesionales
+    const playSound = (tipo) => {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (tipo === 'exito') {
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // La5
+            oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        } else {
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        }
+    };
+
     const handleStartCamera = async () => {
         if (cameraActive) return;
-
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            setResultado({
-                exito: false,
-                mensaje: '⚠️ Tu navegador no permite acceso a la cámara. Usa Safari en iPhone.'
-            });
-            return;
-        }
 
         try {
             const html5QrCode = new Html5Qrcode("reader");
             scannerRef.current = html5QrCode;
 
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            const config = { 
+                fps: 20, 
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0 
+            };
 
-            // Forzar cámara trasera (environment)
             await html5QrCode.start(
                 { facingMode: "environment" },
                 config,
                 async (decodedText) => {
-                    // BLOQUEO INSTANTÁNEO: Si ya estamos procesando, ignoramos cualquier otra lectura
-                    if (loading || scannerRef.current?.isPaused) return;
+                    if (loading || resultado) return;
                     
                     setLoading(true);
-                    setResultado(null);
                     
                     try {
-                        // 1. Apagar el escáner de inmediato para no leer más
-                        if (scannerRef.current) {
-                            await scannerRef.current.stop();
-                            scannerRef.current = null;
-                        }
+                        // Pausar escaneo visualmente
+                        if (scannerRef.current) scannerRef.current.pause(true);
 
-                        // 2. Enviar a la base de datos
                         const res = await api.post('/acceso', { codigo: decodedText });
-                        setResultado({ exito: true, mensaje: res.data.mensaje, tipo: res.data.tipo });
                         
-                        // 3. Resetear el estado de la cámara
-                        setCameraActive(false);
-                    } catch (error) {
-                        setResultado({
-                            exito: false,
-                            mensaje: error.response?.data?.mensaje || 'Error de conexión o código inválido.'
+                        playSound('exito');
+                        if (navigator.vibrate) navigator.vibrate(100);
+
+                        setResultado({ 
+                            exito: true, 
+                            mensaje: res.data.mensaje, 
+                            tipo: res.data.tipo,
+                            nombre: res.data.usuario?.nombre || 'Usuario'
                         });
-                        // Si falló, permitimos que el usuario vuelva a intentar después de 3 segundos
+
+                        // Auto-resume después de 2.5 segundos
                         setTimeout(() => {
                             setResultado(null);
-                            setCameraActive(false); // Apagamos para que pueda darle al botón de nuevo
+                            if (scannerRef.current) scannerRef.current.resume();
+                            setLoading(false);
+                        }, 2500);
+
+                    } catch (error) {
+                        playSound('error');
+                        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+                        setResultado({
+                            exito: false,
+                            mensaje: error.response?.data?.mensaje || 'Acceso Denegado'
+                        });
+
+                        setTimeout(() => {
+                            setResultado(null);
+                            if (scannerRef.current) scannerRef.current.resume();
+                            setLoading(false);
                         }, 3000);
-                    } finally {
-                        setLoading(false);
                     }
                 },
-                (errorMessage) => {
-                    // Escaneo en curso...
-                }
+                () => {}
             );
-
-            // Parche extra para iOS: asegurar que el video tenga playsinline
-            const video = document.querySelector('#reader video');
-            if (video) {
-                video.setAttribute('playsinline', 'true');
-                video.setAttribute('muted', 'true');
-            }
 
             setCameraActive(true);
         } catch (err) {
-            setResultado({
-                exito: false,
-                mensaje: `⚠️ Error al iniciar cámara: ${err}`
-            });
+            alert("Error de cámara: " + err);
         }
     };
 
     const handleStopCamera = async () => {
         if (scannerRef.current) {
-            try {
-                await scannerRef.current.stop();
-            } catch (e) {}
+            try { await scannerRef.current.stop(); } catch (e) {}
             scannerRef.current = null;
         }
-        
         const readerEl = document.getElementById('reader');
         if (readerEl) readerEl.innerHTML = '';
-        
         setCameraActive(false);
-    };
-
-    const handleNfcScan = async () => {
-        if (!('NDEFReader' in window)) {
-            alert('NFC no está soportado en este navegador o dispositivo. Usa Chrome en Android y asegúrate de tener NFC activado.');
-            return;
-        }
-        try {
-            const ndef = new NDEFReader();
-            await ndef.scan();
-            setResultado({ exito: true, mensaje: "Acerca una tarjeta NFC al lector..." });
-            ndef.onreadingerror = () => setResultado({ exito: false, mensaje: "Error al leer la tarjeta NFC. Intenta de nuevo." });
-            ndef.onreading = async (event) => {
-                setLoading(true);
-                setResultado(null);
-                try {
-                    let nfcText = '';
-                    for (const record of event.message.records) {
-                        nfcText = new TextDecoder(record.encoding).decode(record.data);
-                        break;
-                    }
-                    if (!nfcText) throw new Error("Tarjeta NFC vacía o formato no válido");
-                    const res = await api.post('/acceso', { codigo: nfcText });
-                    setResultado({ exito: true, mensaje: res.data.mensaje, tipo: res.data.tipo });
-                } catch (error) {
-                    setResultado({ exito: false, mensaje: error.response?.data?.mensaje || 'Error de conexión o código NFC inválido.' });
-                } finally {
-                    setLoading(false);
-                    setTimeout(() => setResultado(null), 3000);
-                }
-            };
-        } catch (error) {
-            setResultado({ exito: false, mensaje: `Error al iniciar NFC: ${error.message}` });
-        }
+        setResultado(null);
     };
 
     return (
-        <div className="main-content">
-            <h2 style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Simulador de Lector (Torniquete)</h2>
-            <div className="card" style={{ maxWidth: '500px', margin: '0 auto' }}>
-                <p style={{ marginBottom: '1.5rem', color: 'var(--text-muted)' }}>
-                    Para probar <strong>NFC</strong>, pulsa el botón y acerca una tarjeta física al celular. 
-                    Para <strong>QR</strong>, muestra el código QR de otro dispositivo a la cámara.
-                </p>
+        <div className="main-content" style={{ maxWidth: '800px', margin: '0 auto', paddingBottom: '5rem' }}>
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <h1 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '0.5rem' }}>Terminal de Acceso</h1>
+                <p style={{ color: 'var(--text-muted)' }}>Simulador de Lector Inteligente EntryTech</p>
+            </div>
 
-                <button onClick={handleNfcScan} className="btn btn-primary btn-block" style={{ marginBottom: '1.5rem', padding: '1rem', fontSize: '1.1rem' }}>
-                    📡 Activar Lector NFC
-                </button>
+            <div style={{ position: 'relative', borderRadius: '30px', overflow: 'hidden', background: '#1a1a1a', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', border: '4px solid #2d2d2d' }}>
+                
+                {/* Pantalla del Escáner */}
+                <div id="reader" style={{ width: '100%', minHeight: '400px', background: '#000' }}></div>
 
-                {/* Botón de encender cámara - solo visible cuando está apagada */}
-                {!cameraActive && (
-                    <button
-                        onClick={handleStartCamera}
-                        className="btn btn-primary btn-block"
-                        style={{ marginBottom: '1rem', padding: '1rem', fontSize: '1.1rem' }}
-                    >
-                        📷 Encender Cámara QR
-                    </button>
-                )}
-
-                {/* Contenedor del escáner - siempre en el DOM pero vacío cuando está apagado */}
-                <div id="reader" style={{ width: '100%', marginBottom: cameraActive ? '1rem' : '0' }}></div>
-
-                {/* Botón de apagar - solo visible cuando está encendida */}
-                {cameraActive && (
-                    <button
-                        onClick={handleStopCamera}
-                        className="btn btn-danger btn-block"
-                        style={{ marginBottom: '1.5rem', padding: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}
-                    >
-                        ⏹ Apagar Cámara
-                    </button>
-                )}
-
-                {loading && (
-                    <div style={{ textAlign: 'center', marginTop: '1rem', fontWeight: 'bold' }}>
-                        Procesando acceso...
-                    </div>
-                )}
-
-                {resultado && (
-                    <div style={{
-                        marginTop: '2rem',
-                        padding: '1.5rem',
-                        borderRadius: '12px',
-                        backgroundColor: resultado.exito ? '#d1fae5' : '#fee2e2',
-                        color: resultado.exito ? '#065f46' : '#991b1b',
-                        textAlign: 'center',
-                        fontWeight: 'bold',
-                        fontSize: '1.2rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '1rem',
-                        boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
-                    }}>
-                        <span>{resultado.mensaje}</span>
-                        <button
-                            onClick={() => setResultado(null)}
-                            className="btn btn-secondary btn-sm"
-                            style={{ backgroundColor: 'white', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
-                        >
-                            Cerrar Mensaje
+                {/* Overlays de Estado */}
+                {!cameraActive && !resultado && (
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(10px)', color: 'white', zIndex: 10 }}>
+                        <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>📷</div>
+                        <h3 style={{ marginBottom: '1.5rem' }}>Sistema en Espera</h3>
+                        <button onClick={handleStartCamera} className="btn btn-primary" style={{ padding: '1rem 2.5rem', borderRadius: '50px', fontSize: '1.1rem', fontWeight: 'bold', boxShadow: '0 0 20px rgba(79,70,229,0.5)' }}>
+                            Activar Escáner
                         </button>
                     </div>
                 )}
+
+                {/* Overlay de Resultado (Animado) */}
+                {resultado && (
+                    <div style={{
+                        position: 'absolute', inset: 0, 
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        background: resultado.exito 
+                            ? (resultado.tipo === 'entrada' ? 'rgba(16, 185, 129, 0.95)' : 'rgba(59, 130, 246, 0.95)')
+                            : 'rgba(239, 68, 68, 0.95)',
+                        color: 'white', zIndex: 20,
+                        animation: 'fadeIn 0.3s ease-out'
+                    }}>
+                        <div style={{ fontSize: '6rem', marginBottom: '1rem', animation: 'bounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
+                            {resultado.exito ? (resultado.tipo === 'entrada' ? '✅' : '🚪') : '❌'}
+                        </div>
+                        <h2 style={{ fontSize: '2.5rem', fontWeight: '900', marginBottom: '0.5rem', textTransform: 'uppercase' }}>
+                            {resultado.exito ? (resultado.tipo === 'entrada' ? 'ENTRADA' : 'SALIDA') : 'DENEGADO'}
+                        </h2>
+                        <p style={{ fontSize: '1.5rem', fontWeight: '500', opacity: 0.9 }}>
+                            {resultado.mensaje}
+                        </p>
+                        {resultado.nombre && (
+                            <div style={{ marginTop: '2rem', padding: '0.5rem 2rem', background: 'rgba(255,255,255,0.2)', borderRadius: '50px', fontSize: '1.2rem', fontWeight: '700' }}>
+                                {resultado.nombre}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Línea de escaneo animada */}
+                {cameraActive && !resultado && (
+                    <div style={{
+                        position: 'absolute', top: '0', left: '0', width: '100%', height: '4px',
+                        background: 'linear-gradient(to right, transparent, var(--primary-color), transparent)',
+                        boxShadow: '0 0 15px var(--primary-color)',
+                        zIndex: 5,
+                        animation: 'scanMove 2s infinite linear'
+                    }}></div>
+                )}
             </div>
+
+            {/* Controles Inferiores */}
+            <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
+                {cameraActive && (
+                    <button onClick={handleStopCamera} className="btn btn-secondary" style={{ flex: 1, padding: '1rem', borderRadius: '15px', fontWeight: '700' }}>
+                        ⏹ Detener Sistema
+                    </button>
+                )}
+                <button onClick={() => alert('NFC se activa al acercar tarjeta en dispositivos compatibles')} className="btn btn-primary" style={{ flex: 1, padding: '1rem', borderRadius: '15px', fontWeight: '700', background: 'var(--secondary)' }}>
+                    📡 Modo NFC
+                </button>
+            </div>
+
+            <style>{`
+                @keyframes scanMove {
+                    0% { top: 20%; opacity: 0; }
+                    50% { opacity: 1; }
+                    100% { top: 80%; opacity: 0; }
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes bounceIn {
+                    0% { transform: scale(0.3); opacity: 0; }
+                    50% { transform: scale(1.05); opacity: 1; }
+                    70% { transform: scale(0.9); }
+                    100% { transform: scale(1); }
+                }
+            `}</style>
         </div>
     );
 };
