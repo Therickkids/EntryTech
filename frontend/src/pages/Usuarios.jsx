@@ -28,12 +28,16 @@ const Usuarios = () => {
     }, []);
 
     const usuariosFiltrados = useMemo(() => {
-        const q = busqueda.toLowerCase();
-        return usuarios.filter(u => 
-            u.nombre?.toLowerCase().includes(q) || 
-            u.correo?.toLowerCase().includes(q) ||
-            u.cedula?.toLowerCase().includes(q)
-        );
+        const q = busqueda.toLowerCase().trim();
+        if (!q) return usuarios;
+
+        return usuarios.filter(u => {
+            const nombre = (u.nombre || '').toLowerCase();
+            const correo = (u.correo || '').toLowerCase();
+            const cedula = (u.cedula || '').toString().toLowerCase();
+            
+            return nombre.includes(q) || correo.includes(q) || cedula.includes(q);
+        });
     }, [usuarios, busqueda]);
 
     const handleEditClick = (user) => {
