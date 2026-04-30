@@ -81,8 +81,12 @@ const KioskSimulator = () => {
                     setLoading(true);
                     
                     try {
-                        // Pausar escaneo visualmente
-                        if (scannerRef.current) scannerRef.current.pause(true);
+                        // 1. APAGAR CÁMARA INMEDIATAMENTE
+                        if (scannerRef.current) {
+                            await scannerRef.current.stop();
+                            scannerRef.current = null;
+                        }
+                        setCameraActive(false);
 
                         const res = await api.post('/acceso', { codigo: decodedText });
                         
@@ -96,12 +100,12 @@ const KioskSimulator = () => {
                             nombre: res.data.usuario?.nombre || 'Usuario'
                         });
 
-                        // Auto-resume después de 2.5 segundos
+                        // 2. REINICIAR AUTOMÁTICAMENTE DESPUÉS DE 3 SEGUNDOS
                         setTimeout(() => {
                             setResultado(null);
-                            if (scannerRef.current) scannerRef.current.resume();
                             setLoading(false);
-                        }, 2500);
+                            handleStartCamera(); // Vuelve a encender para el siguiente
+                        }, 3000);
 
                     } catch (error) {
                         playSound('error');
@@ -114,8 +118,8 @@ const KioskSimulator = () => {
 
                         setTimeout(() => {
                             setResultado(null);
-                            if (scannerRef.current) scannerRef.current.resume();
                             setLoading(false);
+                            handleStartCamera(); // Reintentar
                         }, 3000);
                     }
                 },
