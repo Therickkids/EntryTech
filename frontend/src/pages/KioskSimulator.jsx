@@ -96,12 +96,10 @@ const KioskSimulator = () => {
                     setLoading(true);
                     
                     try {
-                        // 1. APAGAR CÁMARA PARA SIEMPRE (en esta sesión)
+                        // 1. PAUSAR LECTURAS (pero mantener el video vivo para fluidez)
                         if (scannerRef.current) {
-                            await scannerRef.current.stop().catch(() => {});
-                            scannerRef.current = null;
+                            scannerRef.current.pause(true);
                         }
-                        setCameraActive(false);
 
                         const res = await api.post('/acceso', { codigo: decodedText });
                         
@@ -115,10 +113,17 @@ const KioskSimulator = () => {
                             nombre: res.data.usuario?.nombre || 'Usuario'
                         });
 
-                        // El resultado se queda 4 segundos para que se vea bien
-                        setTimeout(() => {
+                        // 2. ESPERAR A QUE EL MENSAJE TERMINE PARA APAGAR LA CÁMARA
+                        setTimeout(async () => {
                             setResultado(null);
                             setLoading(false);
+                            
+                            // AHORA SÍ: Apagado total después del mensaje
+                            if (scannerRef.current) {
+                                await scannerRef.current.stop().catch(() => {});
+                                scannerRef.current = null;
+                            }
+                            setCameraActive(false);
                         }, 4000);
 
                     } catch (error) {
@@ -130,11 +135,14 @@ const KioskSimulator = () => {
                             mensaje: error.response?.data?.mensaje || 'Acceso Denegado'
                         });
 
-                        // Si falla, también apagamos para seguridad, o podrías dejarla encendida.
-                        // Por tu petición, la apagaremos siempre tras un intento serio.
-                        setTimeout(() => {
+                        setTimeout(async () => {
                             setResultado(null);
                             setLoading(false);
+                            if (scannerRef.current) {
+                                await scannerRef.current.stop().catch(() => {});
+                                scannerRef.current = null;
+                            }
+                            setCameraActive(false);
                         }, 4000);
                     }
                 },
