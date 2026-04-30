@@ -32,28 +32,33 @@ export const register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // Crear usuario
+        console.log('Intentando insertar usuario...');
         const resultUser = await pool.query(
             'INSERT INTO usuarios (cedula, nombre, correo, password, rol) VALUES ($1, $2, $3, $4, $5) RETURNING id, cedula, nombre, correo, rol',
             [cedula, nombre, correo, hashedPassword, rol || 'usuario']
         );
         const newUser = resultUser.rows[0];
+        console.log('Usuario insertado:', newUser.id);
 
         // Crear carnet automáticamente para el nuevo usuario
         const codigo_nfc = generarCodigoUnico('NFC');
         const codigo_qr = generarCodigoUnico('QR');
 
+        console.log('Intentando insertar carnet...');
         await pool.query(
             'INSERT INTO carnet (usuario_id, codigo_nfc, codigo_qr) VALUES ($1, $2, $3)',
             [newUser.id, codigo_nfc, codigo_qr]
         );
+        console.log('Carnet insertado correctamente');
 
         res.status(201).json({
             mensaje: 'Usuario registrado exitosamente',
             usuario: newUser
         });
     } catch (error) {
-        console.error('Error en register:', error);
-        res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
+        console.error('❌ ERROR DETALLADO EN REGISTER:', error.message);
+        console.error('STACK:', error.stack);
+        res.status(500).json({ mensaje: 'Error interno del servidor', detalle: error.message });
     }
 };
 

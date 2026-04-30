@@ -24,6 +24,8 @@ app.get('/', (req, res) => {
 pool.query('SELECT NOW()', (err, res) => {
     if (err) {
         console.error('❌ ERROR AL CONECTAR A LA BASE DE DATOS:', err.message);
+        console.error('CÓDIGO DE ERROR:', err.code);
+        console.error('DETALLE:', err.detail);
     } else {
         console.log('✅ CONEXIÓN EXITOSA A LA BASE DE DATOS (Supabase)');
     }
