@@ -30,32 +30,32 @@ const Navbar = () => {
 
     return (
         <>
-            <nav className="navbar" style={{ padding: '0.75rem 1.25rem' }}>
+            <nav className="navbar" style={{ padding: '0.6rem 1rem', minHeight: '60px' }}>
                 {/* IZQUIERDA: Menú y Marca */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <button onClick={toggleSidebar} className="menu-toggle" style={{ fontSize: '1.2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <button onClick={toggleSidebar} className="menu-toggle" style={{ fontSize: '1.25rem', width: '36px', height: '36px' }}>
                         ☰
                     </button>
-                    <div className="navbar-brand" style={{ fontSize: '1.1rem' }}>EntryTech</div>
+                    <div className="navbar-brand" style={{ fontSize: '1rem', fontWeight: '800' }}>EntryTech</div>
                 </div>
 
                 {/* DERECHA: Mi Carnet + Perfil */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <Link to="/carnet" className={`nav-link ${location.pathname === '/carnet' ? 'active' : ''}`} style={{ fontSize: '0.85rem', padding: '0.5rem 0.75rem' }}>
-                        🪪 Mi Carnet
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <Link to="/carnet" className={`nav-link ${location.pathname === '/carnet' ? 'active' : ''}`} style={{ fontSize: '0.75rem', fontWeight: '700' }}>
+                        Mi Carnet
                     </Link>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', borderLeft: '1px solid var(--border)', paddingLeft: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderLeft: '1px solid var(--border)', paddingLeft: '0.75rem' }}>
                         <div style={{
-                            width: '30px', height: '30px', borderRadius: '50%',
+                            width: '28px', height: '28px', borderRadius: '50%',
                             background: '#f1f5f9', color: 'var(--primary-color)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontWeight: '800', fontSize: '0.75rem', border: '1px solid var(--border)',
+                            fontWeight: '800', fontSize: '0.7rem', border: '1px solid var(--border)',
                             overflow: 'hidden'
                         }}>
                             {usuario.foto_url ? <img src={usuario.foto_url} alt="P" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : inicial}
                         </div>
-                        <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-main)', display: window.innerWidth > 600 ? 'block' : 'none' }}>
+                        <span className="nav-name" style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-main)', opacity: 0.8 }}>
                             {usuario.nombre?.split(' ')[0]}
                         </span>
                     </div>
