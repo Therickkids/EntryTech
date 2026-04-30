@@ -59,10 +59,25 @@ const KioskSimulator = () => {
         }
     };
 
+    // Auto-encendido al entrar al apartado
+    useEffect(() => {
+        handleStartCamera();
+        
+        return () => {
+            if (scannerRef.current) {
+                scannerRef.current.stop().catch(() => {});
+            }
+        };
+    }, []);
+
     const handleStartCamera = async () => {
         if (cameraActive) return;
 
         try {
+            // Limpiar cualquier residuo previo
+            const readerEl = document.getElementById('reader');
+            if (readerEl) readerEl.innerHTML = '';
+
             const html5QrCode = new Html5Qrcode("reader");
             scannerRef.current = html5QrCode;
 
@@ -81,9 +96,9 @@ const KioskSimulator = () => {
                     setLoading(true);
                     
                     try {
-                        // 1. APAGAR CÁMARA INMEDIATAMENTE
+                        // 1. APAGAR CÁMARA PARA SIEMPRE (en esta sesión)
                         if (scannerRef.current) {
-                            await scannerRef.current.stop();
+                            await scannerRef.current.stop().catch(() => {});
                             scannerRef.current = null;
                         }
                         setCameraActive(false);
@@ -100,12 +115,11 @@ const KioskSimulator = () => {
                             nombre: res.data.usuario?.nombre || 'Usuario'
                         });
 
-                        // 2. REINICIAR AUTOMÁTICAMENTE DESPUÉS DE 3 SEGUNDOS
+                        // El resultado se queda 4 segundos para que se vea bien
                         setTimeout(() => {
                             setResultado(null);
                             setLoading(false);
-                            handleStartCamera(); // Vuelve a encender para el siguiente
-                        }, 3000);
+                        }, 4000);
 
                     } catch (error) {
                         playSound('error');
@@ -116,11 +130,12 @@ const KioskSimulator = () => {
                             mensaje: error.response?.data?.mensaje || 'Acceso Denegado'
                         });
 
+                        // Si falla, también apagamos para seguridad, o podrías dejarla encendida.
+                        // Por tu petición, la apagaremos siempre tras un intento serio.
                         setTimeout(() => {
                             setResultado(null);
                             setLoading(false);
-                            handleStartCamera(); // Reintentar
-                        }, 3000);
+                        }, 4000);
                     }
                 },
                 () => {}
@@ -128,7 +143,7 @@ const KioskSimulator = () => {
 
             setCameraActive(true);
         } catch (err) {
-            alert("Error de cámara: " + err);
+            console.error("Error de cámara:", err);
         }
     };
 
