@@ -31,15 +31,19 @@ const Dashboard = () => {
         return { entradasHoy, empleadosUnicos, ultimo };
     }, [accesos]);
 
-    // Filtrado por búsqueda
+    // Filtrado por búsqueda (Robust & Accent-insensitive)
     const accesosFiltrados = useMemo(() => {
-        if (!busqueda.trim()) return accesos;
-        const q = busqueda.toLowerCase();
-        return accesos.filter(a =>
-            a.nombre?.toLowerCase().includes(q) ||
-            a.correo?.toLowerCase().includes(q) ||
-            a.tipo?.toLowerCase().includes(q)
-        );
+        const q = busqueda.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (!q) return accesos;
+
+        return accesos.filter(a => {
+            const nombre = (a.nombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const correo = (a.correo || '').toLowerCase();
+            const cedula = (a.cedula || '').toString().toLowerCase();
+            const tipo = (a.tipo || '').toLowerCase();
+            
+            return nombre.includes(q) || correo.includes(q) || cedula.includes(q) || tipo.includes(q);
+        });
     }, [accesos, busqueda]);
 
     const handleExportCSV = () => {

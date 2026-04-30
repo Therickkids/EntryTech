@@ -27,12 +27,13 @@ const Usuarios = () => {
         fetchUsuarios();
     }, []);
 
+    // Motor de búsqueda robusto (Normaliza tildes y tipos de datos)
     const usuariosFiltrados = useMemo(() => {
-        const q = busqueda.toLowerCase().trim();
+        const q = busqueda.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         if (!q) return usuarios;
 
         return usuarios.filter(u => {
-            const nombre = (u.nombre || '').toLowerCase();
+            const nombre = (u.nombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             const correo = (u.correo || '').toLowerCase();
             const cedula = (u.cedula || '').toString().toLowerCase();
             
@@ -69,7 +70,7 @@ const Usuarios = () => {
     if (loading) return <div className="main-content"><p>Cargando personal...</p></div>;
 
     return (
-        <div className="main-content">
+        <div className="main-content" style={{ paddingBottom: '3rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1.5rem', flexWrap: 'wrap' }}>
                 <div>
                     <h2 style={{ fontSize: '1.8rem', fontWeight: '900', letterSpacing: '-1.2px', marginBottom: '0.2rem' }}>Personal</h2>
@@ -102,31 +103,39 @@ const Usuarios = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {usuariosFiltrados.map((user) => (
-                                <tr key={user.id} className="table-row-hover" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                    <td style={{ padding: '1rem 1.2rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                                            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: '800', color: 'var(--primary-color)' }}>
-                                                {user.nombre.charAt(0).toUpperCase()}
+                            {usuariosFiltrados.length > 0 ? (
+                                usuariosFiltrados.map((user) => (
+                                    <tr key={user.id} className="table-row-hover" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                        <td style={{ padding: '1rem 1.2rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                                                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: '800', color: 'var(--primary-color)' }}>
+                                                    {user.nombre.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div style={{ fontWeight: '700', fontSize: '0.95rem' }}>{user.nombre}</div>
                                             </div>
-                                            <div style={{ fontWeight: '700', fontSize: '0.95rem' }}>{user.nombre}</div>
-                                        </div>
-                                    </td>
-                                    <td style={{ padding: '1.2rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500' }}>{user.cedula}</td>
-                                    <td style={{ padding: '1.2rem', fontSize: '0.9rem', color: 'var(--text-muted)' }} className="hide-mobile">{user.correo}</td>
-                                    <td style={{ padding: '1.2rem' }}>
-                                        <span className={`badge ${user.rol === 'admin' ? 'badge-entrada' : 'badge-salida'}`} style={{ fontSize: '0.65rem', borderRadius: '8px' }}>
-                                            {user.rol.toUpperCase()}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '1.2rem', textAlign: 'right' }}>
-                                        <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'flex-end' }}>
-                                            <button onClick={() => handleEditClick(user)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.7, transition: 'opacity 0.2s' }} onMouseEnter={(e)=>e.currentTarget.style.opacity=1} onMouseLeave={(e)=>e.currentTarget.style.opacity=0.7}>✏️</button>
-                                            <button onClick={() => handleDelete(user.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.7, transition: 'opacity 0.2s' }} onMouseEnter={(e)=>e.currentTarget.style.opacity=1} onMouseLeave={(e)=>e.currentTarget.style.opacity=0.7}>🗑️</button>
-                                        </div>
+                                        </td>
+                                        <td style={{ padding: '1.2rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500' }}>{user.cedula}</td>
+                                        <td style={{ padding: '1.2rem', fontSize: '0.9rem', color: 'var(--text-muted)' }} className="hide-mobile">{user.correo}</td>
+                                        <td style={{ padding: '1.2rem' }}>
+                                            <span className={`badge ${user.rol === 'admin' ? 'badge-entrada' : 'badge-salida'}`} style={{ fontSize: '0.65rem', borderRadius: '8px' }}>
+                                                {user.rol.toUpperCase()}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: '1.2rem', textAlign: 'right' }}>
+                                            <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'flex-end' }}>
+                                                <button onClick={() => handleEditClick(user)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.7 }}>✏️</button>
+                                                <button onClick={() => handleDelete(user.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.7 }}>🗑️</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="5" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                        No se encontraron resultados para "{busqueda}"
                                     </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
