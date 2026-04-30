@@ -206,9 +206,10 @@ a { text-decoration: none; color: inherit; }
 
 /* --- ANIMACIONES --- */
 .typewriter-text {
+  font-family: 'Courier New', Courier, monospace; /* Fuente de ancho fijo para precisión */
   font-size: 2.25rem;
   font-weight: 900;
-  letter-spacing: -1.5px;
+  letter-spacing: -1px;
   color: var(--primary-color);
   overflow: hidden;
   border-right: 4px solid var(--secondary);
@@ -217,7 +218,7 @@ a { text-decoration: none; color: inherit; }
   animation: 
     typing 2s steps(9, end),
     blink-caret .75s step-end infinite;
-  width: 9ch; /* EntryTech tiene 9 letras */
+  width: 9ch; 
 }
 
 @keyframes typing { from { width: 0 } to { width: 9ch } }
