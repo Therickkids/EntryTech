@@ -24,6 +24,9 @@ CREATE TABLE IF NOT EXISTS accesos (
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+UPDATE usuarios SET rol = 'admin' WHERE correo = 'manrriquejulian163@gmail.com';
+
 -- Ejemplos de insert si quieres jugar con ellos inicialmente:
 -- Se crearán desde la API, pero este sería el formato.
 -- INSERT INTO usuarios (nombre, correo, password, rol) VALUES ('Admin', 'admin@entrytech.com', 'bcrypt_hash_aqui', 'admin');
