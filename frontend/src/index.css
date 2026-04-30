@@ -1,0 +1,528 @@
+/* Variables y Estilos Generales Premium (Estilo Tailwind/Bootstrap Moderno) */
+:root {
+  --primary-color: #4f46e5; /* Indigo Tailwind */
+  --primary-hover: #4338ca;
+  --secondary: #0ea5e9;
+  --bg-color: #f1f5f9; /* Slate 100 */
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --success: #10b981;
+  --danger: #ef4444;
+  --border: #e2e8f0;
+  --font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  color: var(--text-main);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Layout */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Navbar */
+.navbar {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.3);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: linear-gradient(to right, var(--primary-color), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+
+.navbar-menu {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.nav-link {
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.2s;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--primary-color);
+  background: #e0e7ff;
+}
+
+.btn-logout {
+  background: #fee2e2;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.btn-logout:hover {
+  background: #fca5a5;
+  color: #991b1b;
+}
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: linear-gradient(to right, var(--primary-color), var(--secondary));
+  color: white;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background-color: #f1f5f9;
+  color: var(--text-main);
+  border: 1px solid #cbd5e1;
+}
+
+.btn-secondary:hover {
+  background-color: #e2e8f0;
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  background: linear-gradient(to right, #ef4444, #dc2626);
+  color: white;
+}
+
+.btn-danger:hover {
+  box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.875rem;
+  border-radius: 6px;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+/* Cards */
+.card {
+  background-color: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255,255,255,0.5);
+  backdrop-filter: blur(20px);
+}
+
+/* Auth Pages */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: all 0.2s;
+  background-color: #f8fafc;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15); /* Sombra más suave y moderna */
+}
+
+/* Estilo súper premium para los Selects (Dropdowns) */
+select.form-control {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem top 50%;
+  background-size: 0.65rem auto;
+  cursor: pointer;
+  padding-right: 2.5rem; /* Espacio para la nueva flecha */
+}
+
+select.form-control option {
+  padding: 0.5rem;
+  background-color: white;
+  color: var(--text-main);
+}
+
+/* Table */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th, .data-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table th {
+  background-color: #f1f5f9;
+  font-weight: 600;
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.badge-entrada {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.badge-salida {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+/* QR Card */
+.qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+}
+
+.qr-box {
+  padding: 2rem;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+}
+
+/* Scanner Custom Styles (html5-qrcode overrides) */
+#reader {
+  width: 100% !important;
+  max-width: 340px !important;
+  height: 340px !important;
+  margin: 0 auto 1rem auto !important;
+  border: none !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  background: #000 !important;
+  box-shadow: 0 8px 32px rgba(79,70,229,0.2), 0 0 0 2px rgba(79,70,229,0.3) !important;
+  position: relative !important;
+}
+
+/* Ocultar el segundo feed de cámara que aparece en iOS */
+#reader video:not(:first-of-type) {
+  display: none !important;
+}
+
+/* Video ocupa TODO el cuadro sin espacios */
+#reader video {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 0 !important;
+  display: block !important;
+}
+
+/* Quitar espacios del área de escaneo */
+#reader__scan_region {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Panel de controles abajo del cuadro (fuera del reader) */
+#reader__dashboard {
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  background: rgba(0,0,0,0.55) !important;
+  backdrop-filter: blur(6px) !important;
+  padding: 0.5rem !important;
+  border-top: none !important;
+  z-index: 10 !important;
+}
+
+#reader__dashboard_section_swaplink {
+  display: none !important;
+}
+
+#reader button {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  border: none !important;
+  padding: 0.6rem 1.2rem !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  font-family: var(--font-family) !important;
+  cursor: pointer !important;
+  margin: 0.5rem 0.2rem !important;
+  transition: all 0.2s !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#reader button:hover {
+  background-color: var(--primary-hover) !important;
+  transform: translateY(-1px);
+}
+
+#reader select {
+  padding: 0.6rem !important;
+  border-radius: 6px !important;
+  border: 1px solid var(--border) !important;
+  margin-bottom: 1rem !important;
+  font-family: inherit !important;
+  width: 100%;
+  max-width: 300px;
+}
+
+#reader a {
+  color: var(--primary-color) !important;
+  font-weight: 600;
+  text-decoration: none !important;
+}
+
+/* Ocultar mensajes de error feos del lector (rojos) */
+#reader span[style*="color: red"],
+#reader__dashboard_section_csr span,
+#reader__header_message,
+#reader div[style*="background-color: rgba(255, 0, 0, 0.1)"],
+#reader div[style*="color: red"] {
+  display: none !important;
+}
+
+/* TRADUCCIÓN DEL ESCÁNER AL ESPAÑOL (CSS Hack) */
+#html5-qrcode-button-camera-start,
+#html5-qrcode-button-camera-stop,
+#html5-qrcode-button-camera-permission,
+#html5-qrcode-anchor-scan-type-change {
+  font-size: 0 !important;
+}
+
+#html5-qrcode-button-camera-start::after {
+  content: "Encender Cámara";
+  font-size: 1rem !important;
+}
+
+#html5-qrcode-button-camera-stop::after {
+  content: "Apagar Cámara";
+  font-size: 1rem !important;
+}
+
+#html5-qrcode-button-camera-permission::after {
+  content: "Permitir Acceso a la Cámara";
+  font-size: 1rem !important;
+}
+
+#html5-qrcode-anchor-scan-type-change::after {
+  content: "Escanear desde una foto en galería";
+  font-size: 1rem !important;
+}
+
+/* Ocultar el botón interno defectuoso de apagar para forzar el uso del nuestro */
+#html5-qrcode-button-camera-stop {
+  display: none !important;
+}
+
+/* Efecto Máquina de Escribir para el Login */
+.typewriter-text {
+  overflow: hidden;
+  border-right: 0.15em solid var(--primary-color);
+  white-space: nowrap;
+  margin: 0 auto;
+  font-size: 2rem;
+  font-weight: 800;
+  width: 9ch;
+  animation: 
+    typing 1.5s steps(9, end),
+    blink-caret 0.75s step-end infinite;
+  
+  /* Gradiente moderno */
+  background: linear-gradient(to right, var(--primary-color), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 9ch }
+}
+
+@keyframes blink-caret {
+  from, to { border-right-color: transparent }
+  50% { border-right-color: var(--primary-color); }
+}
+
+/* =========================================
+   DISEÑO RESPONSIVO PROFESIONAL (MOBILE)
+   ========================================= */
+@media (max-width: 768px) {
+  /* Reducir márgenes y paddings globales para aprovechar el espacio */
+  .main-content {
+    padding: 1rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+    border-radius: 12px;
+  }
+
+  /* Navbar Responsivo: Convertir a columna y agrupar bonito */
+  .navbar {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .navbar-menu {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .nav-link {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  .btn-logout {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  /* Ajustes para el título de la máquina de escribir en mobile */
+  .typewriter-text {
+    font-size: 1.8rem;
+  }
+
+  /* Tablas responsivas: el contenedor ya tiene overflowX: auto,
+     pero ajustamos el texto para que quepa mejor */
+  .data-table th, .data-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  /* Botones más amigables al toque (Touch Targets) */
+  .btn {
+    padding: 0.85rem 1.2rem;
+  }
+
+  .btn-sm {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  /* Hacer el QR de "Mi Carnet" perfecto en celular */
+  .qr-box svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Ajustes de escáner en celular */
+  #reader {
+    border-radius: 8px;
+  }
+}
+
