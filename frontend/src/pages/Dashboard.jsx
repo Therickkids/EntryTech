@@ -165,9 +165,10 @@ const Dashboard = () => {
                                         width: '40px', height: '40px', borderRadius: '50%', 
                                         background: acc.tipo === 'entrada' ? '#d1fae5' : '#fee2e2',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        fontSize: '1rem'
+                                        fontSize: '1.2rem',
+                                        color: acc.tipo === 'entrada' ? '#059669' : '#dc2626'
                                     }}>
-                                        {acc.tipo === 'entrada' ? '🚀' : '🚪'}
+                                        👤
                                     </div>
                                     <div>
                                         <div style={{ fontWeight: '800', fontSize: '0.9rem' }}>{acc.nombre}</div>

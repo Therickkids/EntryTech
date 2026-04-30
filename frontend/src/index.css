@@ -1,10 +1,13 @@
-/* Variables y Estilos Generales Premium (Estilo Tailwind/Bootstrap Moderno) */
+/* 
+  ENTRYTECH - GLOBAL DESIGN SYSTEM 2.1
+  Premium, Clean & Responsive
+*/
+
 :root {
   --primary-color: #4f46e5;
   --primary-hover: #4338ca;
   --secondary: #0ea5e9;
   --bg-color: #f8fafc;
-  --card-bg: rgba(255, 255, 255, 0.9);
   --text-main: #0f172a;
   --text-muted: #64748b;
   --success: #10b981;
@@ -12,8 +15,8 @@
   --border: #e2e8f0;
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 10px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
 }
 
 * {
@@ -25,34 +28,20 @@
 
 body {
   font-family: var(--font-family);
-  background: #f8fafc;
+  background: var(--bg-color);
   color: var(--text-main);
   line-height: 1.6;
-  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
 
-/* App Container */
-.app-container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
+a { text-decoration: none; color: inherit; }
 
-.main-content {
-  flex: 1;
-  padding: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* Navbar Premium */
+/* --- NAVEGACIÓN --- */
 .navbar {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid var(--border);
   padding: 0.75rem 1.5rem;
   display: flex;
   justify-content: space-between;
@@ -63,7 +52,6 @@ body {
 }
 
 .navbar-brand {
-  font-size: 1.25rem;
   font-weight: 800;
   background: linear-gradient(135deg, var(--primary-color), var(--secondary));
   -webkit-background-clip: text;
@@ -71,152 +59,34 @@ body {
   letter-spacing: -1px;
 }
 
-.navbar-menu {
+.menu-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
   display: flex;
-  gap: 0.5rem;
   align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background 0.2s;
+  color: var(--text-main);
 }
+
+.menu-toggle:hover { background: rgba(0,0,0,0.05); }
 
 .nav-link {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-muted);
-  transition: all 0.2s;
-  padding: 0.5rem 0.85rem;
+  padding: 0.5rem 1rem;
   border-radius: 10px;
-  font-size: 0.9rem;
-  text-decoration: none; /* QUITAR SUBRAYADO */
-}
-
-.nav-link:hover {
-  color: var(--primary-color);
-  background: rgba(79, 70, 229, 0.05);
-  text-decoration: none;
+  transition: all 0.2s;
 }
 
 .nav-link.active {
   color: var(--primary-color);
-  background: transparent;
-  position: relative;
+  background: rgba(79, 70, 229, 0.05);
 }
 
-.nav-link.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 20%;
-  right: 20%;
-  height: 2px;
-  background: var(--primary-color);
-  border-radius: 2px;
-}
-
-.btn-logout {
-  background: #fff1f2;
-  border: none;
-  color: #e11d48;
-  cursor: pointer;
-  font-weight: 700;
-  padding: 0.5rem 1rem;
-  border-radius: 10px;
-  font-size: 0.85rem;
-  transition: all 0.2s;
-}
-
-/* Botones Modernos */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.8rem 1.5rem;
-  border-radius: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 0.95rem;
-}
-
-.btn:active {
-  transform: scale(0.96);
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary));
-  color: white;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-}
-
-.btn-secondary {
-  background: white;
-  color: var(--text-main);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-}
-
-.btn-block {
-  width: 100%;
-}
-
-/* Cards Glassmorphism */
-.card {
-  background: var(--card-bg);
-  border-radius: 24px;
-  box-shadow: var(--shadow-lg);
-  padding: 2rem;
-  margin-bottom: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-}
-
-/* Estilos Responsivos (Mobile) */
-@media (max-width: 768px) {
-  .navbar {
-    flex-direction: row !important;
-    justify-content: space-between !important;
-    padding: 0.5rem 0.75rem !important;
-    height: 60px;
-  }
-
-  .navbar-brand {
-    font-size: 0.9rem !important; /* Marca más pequeña para dar espacio */
-    letter-spacing: -0.5px;
-  }
-
-  .nav-link {
-    font-size: 0.7rem !important;
-    padding: 0.4rem 0.5rem !important;
-    background: #f1f5f9 !important;
-    border-radius: 8px !important;
-  }
-
-  .menu-toggle {
-    padding: 0.25rem !important;
-    margin-right: -0.25rem;
-  }
-}
-
-  .main-content {
-    padding: 1rem;
-  }
-
-  .card {
-    padding: 1.25rem;
-  }
-
-  h1 { font-size: 1.5rem !important; }
-  h2 { font-size: 1.3rem !important; }
-}
-
-.nav-name {
-  display: block;
-}
-
-@media (max-width: 600px) {
-  .nav-name {
-    display: none;
-  }
-}
-
-/* Sidebar / Drawer Premium */
+/* --- SIDEBAR --- */
 .sidebar-overlay {
   position: fixed;
   inset: 0;
@@ -225,13 +95,10 @@ body {
   z-index: 200;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 }
 
-.sidebar-overlay.open {
-  opacity: 1;
-  visibility: visible;
-}
+.sidebar-overlay.open { opacity: 1; visibility: visible; }
 
 .sidebar {
   position: fixed;
@@ -248,21 +115,7 @@ body {
   padding: 2rem 1.5rem;
 }
 
-.sidebar.open {
-  left: 0;
-}
-
-.sidebar-header {
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.sidebar-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
+.sidebar.open { left: 0; }
 
 .sidebar-link {
   display: flex;
@@ -271,30 +124,121 @@ body {
   padding: 0.85rem 1rem;
   border-radius: 12px;
   color: var(--text-muted);
-  font-weight: 600;
-  transition: all 0.2s;
-  text-decoration: none;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
 }
 
-.sidebar-link:hover, .sidebar-link.active {
+.sidebar-link.active {
   background: rgba(79, 70, 229, 0.08);
   color: var(--primary-color);
 }
 
-.menu-toggle {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--text-main);
-  padding: 0.5rem;
+/* --- AUTH / LOGIN --- */
+.auth-container {
   display: flex;
-  align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  transition: background 0.2s;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1.5rem;
 }
 
-.menu-toggle:hover {
-  background: rgba(0,0,0,0.05);
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  border-radius: 30px;
+  box-shadow: var(--shadow-lg);
+  padding: 2.5rem;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.85rem 1.25rem;
+  border-radius: 14px;
+  border: 2px solid var(--border);
+  background: white;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+/* --- BOTONES --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1.5rem;
+  border-radius: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary));
+  color: white;
+  box-shadow: 0 8px 15px rgba(79, 70, 229, 0.25);
+}
+
+.btn-block { width: 100%; }
+
+/* --- ANIMACIONES --- */
+.typewriter-text {
+  font-size: 2.25rem;
+  font-weight: 900;
+  letter-spacing: -1.5px;
+  color: var(--primary-color);
+  overflow: hidden;
+  border-right: .15em solid var(--secondary);
+  white-space: nowrap;
+  margin: 0 auto;
+  animation: 
+    typing 2.5s steps(20, end),
+    blink-caret .5s step-end infinite;
+  width: fit-content;
+}
+
+@keyframes typing { from { width: 0 } to { width: 100% } }
+@keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: var(--secondary) } }
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0.5rem 1rem;
+  }
+  .navbar-brand { font-size: 0.95rem; }
+  .nav-name { display: none; }
+  .main-content { padding: 1rem; }
+  .auth-card { padding: 1.5rem; border-radius: 24px; }
+}
+
+/* --- CARDS & TABLES --- */
+.card {
+  background: white;
+  border-radius: 24px;
+  box-shadow: var(--shadow-md);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
 }
