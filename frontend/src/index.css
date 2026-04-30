@@ -206,22 +206,23 @@ a { text-decoration: none; color: inherit; }
 
 /* --- ANIMACIONES --- */
 .typewriter-text {
-  font-family: 'Courier New', Courier, monospace; /* Fuente de ancho fijo para precisión */
+  font-family: var(--font-family); /* Volvemos a la fuente original Inter */
   font-size: 2.25rem;
   font-weight: 900;
-  letter-spacing: -1px;
+  letter-spacing: -1.5px;
   color: var(--primary-color);
   overflow: hidden;
   border-right: 4px solid var(--secondary);
   white-space: nowrap;
   margin: 0 auto 1.5rem auto;
   animation: 
-    typing 2s steps(9, end),
+    typing 2s steps(40, end), /* Más pasos para que parezca fluido pero pare en seco */
     blink-caret .75s step-end infinite;
-  width: 9ch; 
+  width: fit-content;
+  max-width: 185px; /* Ajuste manual para que el cursor no se escape en Inter */
 }
 
-@keyframes typing { from { width: 0 } to { width: 9ch } }
+@keyframes typing { from { width: 0 } to { width: 185px } }
 @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: var(--secondary) } }
 
 /* --- RESPONSIVE --- */
