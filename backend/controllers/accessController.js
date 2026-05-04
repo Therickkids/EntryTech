@@ -67,7 +67,7 @@ export const getAccesos = async (req, res) => {
             SELECT a.id, a.tipo, a.fecha, u.nombre, u.correo, u.cedula
             FROM accesos a
             INNER JOIN usuarios u ON a.usuario_id = u.id
-            ORDER BY a.fecha DESC
+            ORDER BY a.fecha DESC, a.id DESC
         `);
         res.json(result.rows);
     } catch (error) {
