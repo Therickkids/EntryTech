@@ -63,5 +63,10 @@ Herramienta que simula el punto de acceso físico. Valida si un usuario tiene pe
 *   **Backend:** Preparado para hosting en servicios como Render o Railway.
 *   **Variables de Entorno:** Uso de archivos `.env` para proteger llaves secretas y URLs de base de datos.
 
+## 8. Mejoras Recientes (v1.1.0)
+*   **Buscador Inteligente:** Optimización del motor de búsqueda en el Dashboard con soporte para normalización de caracteres (tildes) y búsqueda multi-campo.
+*   **Seguridad en el Cierre de Sesión:** Rediseño del botón de logout con estado de confirmación interactiva para prevenir cierres accidentales.
+*   **Optimización de Tiempos Reales:** Implementación de ordenación por ID descendente para asegurar que los registros más nuevos aparezcan siempre en la parte superior.
+
 ---
 **EntryTech** - *Tecnología que abre puertas.*
