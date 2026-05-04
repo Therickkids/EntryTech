@@ -94,7 +94,6 @@ const Navbar = () => {
                                 onClick={() => setShowConfirmLogout(true)} 
                                 className="btn-logout-premium"
                             >
-                                <span style={{ fontSize: '1.2rem' }}>🚪</span>
                                 <span>Cerrar Sesión</span>
                             </button>
                         ) : (
