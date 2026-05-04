@@ -9,7 +9,10 @@ const Dashboard = () => {
     const fetchAccesos = async () => {
         try {
             const res = await api.get('/accesos');
-            setAccesos(Array.isArray(res.data) ? res.data : []);
+            const data = Array.isArray(res.data) ? res.data : [];
+            // ORDENACIÓN ABSOLUTA: El ID más alto (último registro) siempre arriba
+            data.sort((a, b) => b.id - a.id);
+            setAccesos(data);
         } catch (error) {
             console.error("Error cargando accesos:", error);
         } finally {
