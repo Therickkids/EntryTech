@@ -6,6 +6,8 @@ const Navbar = () => {
     const location = useLocation();
     const [isOpen, setIsOpen] = useState(false);
 
+    const [showConfirmLogout, setShowConfirmLogout] = useState(false);
+
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('usuario');
@@ -86,11 +88,27 @@ const Navbar = () => {
                         </Link>
                     ))}
                     
-                    <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '1rem 0' }} />
-                    
-                    <button onClick={handleLogout} className="btn-logout" style={{ width: '100%', textAlign: 'left', padding: '0.85rem 1rem' }}>
-                        🚪 Cerrar Sesión
-                    </button>
+                    <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
+                        {!showConfirmLogout ? (
+                            <button 
+                                onClick={() => setShowConfirmLogout(true)} 
+                                className="btn-logout-premium"
+                            >
+                                <span style={{ fontSize: '1.2rem' }}>🚪</span>
+                                <span>Cerrar Sesión</span>
+                            </button>
+                        ) : (
+                            <div className="logout-confirm-box">
+                                <p style={{ fontSize: '0.75rem', fontWeight: '800', marginBottom: '0.8rem', color: '#f87171' }}>
+                                    ¿Seguro que quieres salir?
+                                </p>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <button onClick={handleLogout} className="btn-logout-confirm">Sí, salir</button>
+                                    <button onClick={() => setShowConfirmLogout(false)} className="btn-logout-cancel">No</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div style={{ marginTop: 'auto', fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center' }}>

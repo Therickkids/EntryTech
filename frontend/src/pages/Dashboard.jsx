@@ -24,14 +24,18 @@ const Dashboard = () => {
         return () => clearInterval(interval);
     }, []);
 
-    // Motor de búsqueda ultra-robusto
+    // Motor de búsqueda ultra-robusto mejorado
     const accesosFiltrados = useMemo(() => {
         const q = busqueda.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         if (!q) return accesos;
 
         return accesos.filter(a => {
-            const dataString = `${a.nombre} ${a.correo} ${a.cedula} ${a.tipo}`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            return dataString.includes(q);
+            const nombre = (a.nombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const correo = (a.correo || '').toLowerCase();
+            const cedula = (a.cedula || '').toString().toLowerCase();
+            const tipo = (a.tipo || '').toLowerCase();
+            
+            return nombre.includes(q) || correo.includes(q) || cedula.includes(q) || tipo.includes(q);
         });
     }, [accesos, busqueda]);
 
@@ -109,9 +113,9 @@ const Dashboard = () => {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                     <div style={{ width: '45px', height: '45px', borderRadius: '14px', background: acc.tipo === 'entrada' ? '#ecfdf5' : '#fef2f2', color: acc.tipo === 'entrada' ? '#059669' : '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>👤</div>
                                     <div>
-                                        <div style={{ fontWeight: '900', fontSize: '1rem', color: 'var(--text-main)' }}>{acc.nombre}</div>
+                                        <div style={{ fontWeight: '900', fontSize: '1rem', color: 'var(--text-main)' }}>{acc.nombre || 'Usuario Desconocido'}</div>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
-                                            ID: {acc.cedula} • <span style={{ color: acc.tipo === 'entrada' ? '#059669' : '#dc2626' }}>{acc.tipo.toUpperCase()}</span>
+                                            ID: {acc.cedula || '---'} • <span style={{ color: acc.tipo === 'entrada' ? '#059669' : '#dc2626' }}>{acc.tipo?.toUpperCase()}</span>
                                         </div>
                                     </div>
                                 </div>
