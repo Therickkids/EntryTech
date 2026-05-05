@@ -60,7 +60,7 @@ Herramienta que simula el punto de acceso físico. Valida si un usuario tiene pe
 
 ## 7. Despliegue y Mantenimiento
 *   **Frontend:** Configurado para despliegue continuo en **Vercel** (`vercel.json`).
-*   **Backend:** Preparado para hosting en servicios como Render o Railway.
+*   **Backend:** Desplegado como un Web Service en **Render**.
 *   **Variables de Entorno:** Uso de archivos `.env` para proteger llaves secretas y URLs de base de datos.
 
 ## 8. Mejoras Recientes (v1.1.0)

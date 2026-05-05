@@ -23,8 +23,17 @@ Para poner en marcha el backend, siga estos pasos:
     - `DB_PASSWORD`: Contraseña de PostgreSQL.
     - `DB_HOST`: Servidor de la base de datos (ej. localhost).
     - `DB_PORT`: Puerto (ej. 5432).
-    - `DB_NAME`: Nombre de la base de datos (entrytech).
+    - `DB_NAME`: Nombre de la base de datos (ej. postgres).
     - `JWT_SECRET`: Clave secreta para la firma de tokens.
+
+> [!IMPORTANT]
+> **Configuración de Producción (Supabase + Render):** 
+> Para conectar con la base de datos en producción, asegúrese de configurar estas variables exactas en el panel de **Render** (sección Environment):
+> - **DB_HOST:** `aws-1-sa-east-1.pooler.supabase.com`
+> - **DB_PORT:** `5432`
+> - **DB_USER:** `postgres.otjlhkgzryhbmwlsawnz`
+> - **DB_PASSWORD:** `1058526407julian`
+> - **DB_NAME:** `postgres`
 
 3.  **Preparación de la Base de Datos:**
     Ejecute el script `database.sql` ubicado en la raíz del proyecto para crear las tablas y relaciones necesarias.
@@ -47,7 +56,18 @@ El backend expone los siguientes servicios principales:
   - `GET /api/access/logs`: Historial de entradas y salidas.
   - `POST /api/access/register`: Registrar un nuevo movimiento.
 
-## 5. Mantenimiento y Seguridad
+## 5. Despliegue en Render
+Para desplegar el backend en **Render**, siga estos pasos:
+
+1.  **Crear un nuevo Web Service:** Conecte su repositorio de GitHub.
+2.  **Configuración del Entorno:**
+    - **Runtime:** `Node`
+    - **Build Command:** `npm install` (asegúrese de que el Root Directory apunte a la carpeta `backend`).
+    - **Start Command:** `node server.js` o `npm start`.
+3.  **Variables de Entorno (Environment):**
+    Agregue todas las variables definidas en el archivo `.env`. Para la base de datos de Supabase, es recomendable usar la variable `DATABASE_URL` con la cadena de conexión completa proporcionada por Supabase (modo pooler).
+
+## 6. Mantenimiento y Seguridad
 - **Logs:** El sistema registra todos los intentos de acceso. Revise la tabla `access_logs` para auditorías.
 - **Tokens:** Los JWT tienen un tiempo de expiración configurado para garantizar la seguridad de las sesiones.
 - **Cifrado:** Todas las contraseñas se almacenan cifradas mediante el algoritmo **Bcrypt**.
