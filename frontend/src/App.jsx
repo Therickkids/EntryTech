@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Carnet from './pages/Carnet';
 import KioskSimulator from './pages/KioskSimulator';
 import Usuarios from './pages/Usuarios';
+import Manual from './pages/Manual';
 import Navbar from './components/Navbar';
 
 const PrivateRoute = ({ children }) => {
@@ -55,6 +56,12 @@ function App() {
                         <PrivateRoute>
                             <Navbar />
                             <KioskSimulator />
+                        </PrivateRoute>
+                    } />
+                    <Route path="/manual" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Manual />
                         </PrivateRoute>
                     } />
 

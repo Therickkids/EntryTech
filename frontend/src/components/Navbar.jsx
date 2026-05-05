@@ -21,6 +21,7 @@ const Navbar = () => {
 
     const navLinks = [
         { path: '/simulador', label: '📲 Simulador' },
+        { path: '/manual', label: '📖 Manual de Usuario' },
     ];
 
     if (usuario.rol === 'admin') {

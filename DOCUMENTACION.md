@@ -67,6 +67,7 @@ Herramienta que simula el punto de acceso físico. Valida si un usuario tiene pe
 *   **Buscador Inteligente:** Optimización del motor de búsqueda en el Dashboard con soporte para normalización de caracteres (tildes) y búsqueda multi-campo.
 *   **Seguridad en el Cierre de Sesión:** Rediseño del botón de logout con estado de confirmación interactiva para prevenir cierres accidentales.
 *   **Optimización de Tiempos Reales:** Implementación de ordenación por ID descendente para asegurar que los registros más nuevos aparezcan siempre en la parte superior.
+*   **Manuales de Usuario Integrados:** Creación de guías detalladas tanto en el frontend (página interactiva y MD) como en el backend (MD técnico) para facilitar el uso y mantenimiento del sistema.
 
 ---
 **EntryTech** - *Tecnología que abre puertas.*
