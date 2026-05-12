@@ -1,32 +1,33 @@
--- EntryTech: Script de inicialización de Base de Datos (PostgreSQL)
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
 
-CREATE TABLE IF NOT EXISTS usuarios (
-    id SERIAL PRIMARY KEY,
-    cedula VARCHAR(20) UNIQUE NOT NULL,
-    nombre VARCHAR(100) NOT NULL,
-    correo VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    rol VARCHAR(50) DEFAULT 'usuario' CHECK (rol IN ('admin', 'usuario'))
+CREATE TABLE public.accesos (
+  id integer NOT NULL DEFAULT nextval('accesos_id_seq'::regclass),
+  usuario_id integer,
+  tipo character varying CHECK (tipo::text = ANY (ARRAY['entrada'::character varying, 'salida'::character varying]::text[])),
+  fecha timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT accesos_pkey PRIMARY KEY (id),
+  CONSTRAINT accesos_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id)
 );
 
-CREATE TABLE IF NOT EXISTS carnet (
-    id SERIAL PRIMARY KEY,
-    usuario_id INT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
-    codigo_nfc VARCHAR(255) UNIQUE NOT NULL,
-    codigo_qr VARCHAR(255) UNIQUE NOT NULL
+CREATE TABLE public.carnet (
+  id integer NOT NULL DEFAULT nextval('carnet_id_seq'::regclass),
+  usuario_id integer,
+  codigo_nfc character varying NOT NULL UNIQUE,
+  codigo_qr character varying NOT NULL UNIQUE,
+  emitido_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT carnet_pkey PRIMARY KEY (id),
+  CONSTRAINT carnet_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id)
 );
 
--- Para los accesos:
-CREATE TABLE IF NOT EXISTS accesos (
-    id SERIAL PRIMARY KEY,
-    usuario_id INT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
-    tipo VARCHAR(50) NOT NULL CHECK (tipo IN ('entrada', 'salida')),
-    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE public.usuarios (
+  id integer NOT NULL DEFAULT nextval('usuarios_id_seq'::regclass),
+  cedula character varying NOT NULL UNIQUE,
+  nombre character varying NOT NULL,
+  correo character varying NOT NULL UNIQUE,
+  password character varying NOT NULL,
+  rol character varying DEFAULT 'usuario'::character varying CHECK (rol::text = ANY (ARRAY['admin'::character varying, 'usuario'::character varying]::text[])),
+  foto_url text,
+  creado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT usuarios_pkey PRIMARY KEY (id)
 );
-
-
-UPDATE usuarios SET rol = 'admin' WHERE correo = 'manrriquejulian163@gmail.com';
-
--- Ejemplos de insert si quieres jugar con ellos inicialmente:
--- Se crearán desde la API, pero este sería el formato.
--- INSERT INTO usuarios (nombre, correo, password, rol) VALUES ('Admin', 'admin@entrytech.com', 'bcrypt_hash_aqui', 'admin');

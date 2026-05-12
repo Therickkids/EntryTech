@@ -40,9 +40,9 @@ El proyecto sigue una arquitectura **Cliente-Servidor** (MERN/PERN Stack):
 
 ## 5. Diseño de Base de Datos
 La base de datos se estructura mediante el archivo `database.sql` con las siguientes entidades principales:
-*   **users:** Almacena información de perfil, credenciales y roles (Admin/User).
-*   **access_logs:** Registra la fecha, hora, usuario y tipo de movimiento (Entrada/Salida).
-*   **roles:** Define los permisos dentro del sistema.
+*   **usuarios:** Almacena información de perfil, credenciales y roles (Admin/Usuario).
+*   **accesos:** Registra la fecha, hora, usuario y tipo de movimiento (Entrada/Salida).
+*   **carnet:** Gestiona los códigos dinámicos (QR/NFC) vinculados a cada usuario.
 
 ## 6. Descripción de Módulos Principales
 
