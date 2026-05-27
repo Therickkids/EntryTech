@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 
@@ -7,7 +7,20 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [isWakingUp, setIsWakingUp] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        let timer;
+        if (loading) {
+            timer = setTimeout(() => {
+                setIsWakingUp(true);
+            }, 4000); // Mostrar mensaje después de 4 segundos
+        } else {
+            setIsWakingUp(false);
+        }
+        return () => clearTimeout(timer);
+    }, [loading]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -65,7 +78,7 @@ const Login = () => {
                         </div>
                     </div>
                     <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-                        {loading ? 'Ingresando...' : 'Iniciar Sesión'}
+                        {loading ? (isWakingUp ? 'Despertando servidor...' : 'Ingresando...') : 'Iniciar Sesión'}
                     </button>
                 </form>
 

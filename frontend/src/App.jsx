@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import api from './services/api';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -23,6 +24,11 @@ const AdminRoute = ({ children }) => {
 };
 
 function App() {
+    useEffect(() => {
+        // Ping al backend para despertarlo en segundo plano apenas carga la app
+        api.get('/ping').catch(() => {});
+    }, []);
+
     return (
         <Router>
             <div className="app-container">
