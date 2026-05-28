@@ -2,9 +2,12 @@ import React, { useEffect, useState, useMemo } from 'react';
 import api from '../services/api';
 import { Search, Pencil, Trash2 } from 'lucide-react';
 
+let globalUsuariosCache = [];
+let hasFetchedUsuariosInitially = false;
+
 const Usuarios = () => {
-    const [usuarios, setUsuarios] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [usuarios, setUsuarios] = useState(globalUsuariosCache);
+    const [loading, setLoading] = useState(!hasFetchedUsuariosInitially);
     const [error, setError] = useState(null);
     const [busqueda, setBusqueda] = useState('');
     
@@ -18,6 +21,8 @@ const Usuarios = () => {
     const fetchUsuarios = async () => {
         try {
             const res = await api.get('/usuarios');
+            globalUsuariosCache = res.data;
+            hasFetchedUsuariosInitially = true;
             setUsuarios(res.data);
             setError(null);
         } catch (err) {

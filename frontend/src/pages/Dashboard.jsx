@@ -2,9 +2,12 @@ import React, { useEffect, useState, useMemo } from 'react';
 import api from '../services/api';
 import { TrendingUp, Users, ClipboardList, Clock, Download, Search, LogIn, LogOut } from 'lucide-react';
 
+let globalAccesosCache = [];
+let hasFetchedInitially = false;
+
 const Dashboard = () => {
-    const [accesos, setAccesos] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [accesos, setAccesos] = useState(globalAccesosCache);
+    const [loading, setLoading] = useState(!hasFetchedInitially);
     const [busqueda, setBusqueda] = useState('');
 
     const fetchAccesos = async () => {
@@ -13,6 +16,8 @@ const Dashboard = () => {
             const data = Array.isArray(res.data) ? res.data : [];
             // ORDENACIÓN ABSOLUTA: El ID más alto (último registro) siempre arriba
             data.sort((a, b) => b.id - a.id);
+            globalAccesosCache = data;
+            hasFetchedInitially = true;
             setAccesos(data);
         } catch (error) {
             console.error("Error cargando accesos:", error);
