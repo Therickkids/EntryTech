@@ -114,14 +114,16 @@ const KioskSimulator = () => {
                         nombre: res.data.usuario?.nombre || 'Usuario'
                     });
 
-                    // 2. ESPERAR Y REANUDAR ESCANEO (Kiosko continuo)
+                    // 2. ESPERAR Y APAGAR CÁMARA TRAS EL MENSAJE
                     setTimeout(async () => {
                         setResultado(null);
                         setLoading(false);
                         
                         if (scannerRef.current) {
-                            try { scannerRef.current.resume(); } catch(e) {}
+                            await scannerRef.current.stop().catch(() => {});
+                            scannerRef.current = null;
                         }
+                        setCameraActive(false);
                     }, 4000);
 
                 } catch (error) {
@@ -138,8 +140,10 @@ const KioskSimulator = () => {
                         setLoading(false);
                         
                         if (scannerRef.current) {
-                            try { scannerRef.current.resume(); } catch(e) {}
+                            await scannerRef.current.stop().catch(() => {});
+                            scannerRef.current = null;
                         }
+                        setCameraActive(false);
                     }, 4000);
                 }
             };
