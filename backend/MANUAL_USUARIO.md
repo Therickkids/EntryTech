@@ -43,18 +43,21 @@ Para poner en marcha el backend, siga estos pasos:
 - **Modo Producción:** `npm start`.
 
 ## 4. Estructura de la API (Endpoints)
-El backend expone los siguientes servicios principales:
+El backend expone los siguientes servicios principales bajo el prefijo `/api`:
 
 - **Autenticación:**
-  - `POST /api/auth/login`: Validación de credenciales.
+  - `POST /api/register`: Registro de nuevos usuarios.
+  - `POST /api/login`: Validación de credenciales e inicio de sesión.
+  - `POST /api/reset-password`: Restablecimiento de contraseñas.
 - **Usuarios:**
-  - `GET /api/users`: Listar todos los usuarios.
-  - `POST /api/users`: Crear un nuevo usuario.
-  - `PUT /api/users/:id`: Actualizar datos de un usuario.
-  - `DELETE /api/users/:id`: Eliminar un usuario.
-- **Accesos:**
-  - `GET /api/access/logs`: Historial de entradas y salidas.
-  - `POST /api/access/register`: Registrar un nuevo movimiento.
+  - `GET /api/usuarios`: Listar todos los usuarios (Requiere admin).
+  - `PUT /api/usuarios/:id`: Actualizar datos de un usuario (Requiere admin).
+  - `DELETE /api/usuarios/:id`: Eliminar un usuario (Requiere admin).
+  - `PUT /api/usuarios/:id/foto`: Subir foto de perfil en Base64.
+- **Accesos y Carnet:**
+  - `POST /api/acceso`: Registrar una entrada o salida con código QR o NFC.
+  - `GET /api/accesos`: Ver el historial de accesos (Requiere admin).
+  - `GET /api/usuarios/:id/qr`: Obtener la información del QR dinámico de un usuario.
 
 ## 5. Despliegue en Render
 Para desplegar el backend en **Render**, siga estos pasos:
@@ -63,13 +66,13 @@ Para desplegar el backend en **Render**, siga estos pasos:
 2.  **Configuración del Entorno:**
     - **Runtime:** `Node`
     - **Build Command:** `npm install` (asegúrese de que el Root Directory apunte a la carpeta `backend`).
-    - **Start Command:** `node server.js` o `npm start`.
+    - **Start Command:** `npm run start` o `node server.js`.
 3.  **Variables de Entorno (Environment):**
     Agregue todas las variables definidas en el archivo `.env`. Para la base de datos de Supabase, es recomendable usar la variable `DATABASE_URL` con la cadena de conexión completa proporcionada por Supabase (modo pooler).
 
 ## 6. Mantenimiento y Seguridad
-- **Logs:** El sistema registra todos los intentos de acceso. Revise la tabla `access_logs` para auditorías.
-- **Tokens:** Los JWT tienen un tiempo de expiración configurado para garantizar la seguridad de las sesiones.
+- **Logs:** El sistema registra todos los intentos de acceso. Revise la tabla `accesos` para auditorías.
+- **Tokens:** Los JWT tienen un tiempo de expiración de 8 horas configurado para garantizar la seguridad de las sesiones.
 - **Cifrado:** Todas las contraseñas se almacenan cifradas mediante el algoritmo **Bcrypt**.
 
 ---
