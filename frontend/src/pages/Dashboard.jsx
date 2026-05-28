@@ -67,10 +67,10 @@ const Dashboard = () => {
         <div className="main-content" style={{ paddingBottom: '4rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.8rem', fontWeight: '900', letterSpacing: '-1.2px' }}>Dashboard</h2>
+                    <h2 className="animate-fade-in" style={{ fontSize: '1.8rem', fontWeight: '900', letterSpacing: '-1.2px' }}>Dashboard</h2>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>Monitor de accesos en tiempo real</p>
                 </div>
-                <button onClick={handleExportCSV} className="btn btn-primary" style={{ padding: '0.7rem 1.5rem', borderRadius: '14px' }}>
+                <button onClick={handleExportCSV} className="btn btn-primary animate-fade-in click-effect" style={{ padding: '0.7rem 1.5rem', borderRadius: '14px' }}>
                     ⬇ Exportar CSV
                 </button>
             </div>
@@ -83,7 +83,7 @@ const Dashboard = () => {
                     { label: 'Total Logs', val: accesos.length, icon: '📋', bg: '#10b981' },
                     { label: 'Último', val: stats.ultimo?.nombre?.split(' ')[0] || '---', icon: '⏱️', bg: '#f59e0b' }
                 ].map((s, i) => (
-                    <div key={i} className="card" style={{ padding: '1.25rem', borderRadius: '24px', border: 'none', boxShadow: 'var(--shadow-md)' }}>
+                    <div key={i} className={`card animate-slide-up delay-${(i % 4) * 100}`} style={{ padding: '1.25rem', borderRadius: '24px', border: '1px solid var(--border)', cursor: 'default', transition: 'transform 0.3s, box-shadow 0.3s' }} onMouseEnter={e => { e.currentTarget.style.transform='translateY(-4px)'; e.currentTarget.style.boxShadow='var(--shadow-glow)'; }} onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow=''; }}>
                         <div style={{ background: `${s.bg}15`, width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', marginBottom: '1rem' }}>{s.icon}</div>
                         <div style={{ fontSize: '1.5rem', fontWeight: '900' }}>{s.val}</div>
                         <div style={{ fontSize: '0.65rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{s.label}</div>
@@ -92,7 +92,7 @@ const Dashboard = () => {
             </div>
 
             {/* Buscador de "Fuerza Bruta" */}
-            <div style={{ position: 'relative', maxWidth: '600px', margin: '0 auto 2.5rem auto' }}>
+            <div className="animate-fade-in delay-200" style={{ position: 'relative', maxWidth: '600px', margin: '0 auto 2.5rem auto' }}>
                 <span style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>🔍</span>
                 <input
                     type="text"
@@ -111,8 +111,8 @@ const Dashboard = () => {
                     <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>Cargando registros...</div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        {accesosFiltrados.map((acc) => (
-                            <div key={acc.id} style={{ background: 'white', padding: '1.2rem', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid rgba(0,0,0,0.03)', boxShadow: 'var(--shadow-sm)' }}>
+                        {accesosFiltrados.map((acc, i) => (
+                            <div key={acc.id} className="animate-slide-up" style={{ animationDelay: `${Math.min(i * 50, 500)}ms`, background: 'var(--surface)', padding: '1.2rem', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--border)', transition: 'transform 0.2s', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.transform='scale(1.01)'} onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                     <div style={{ width: '45px', height: '45px', borderRadius: '14px', background: acc.tipo === 'entrada' ? '#ecfdf5' : '#fef2f2', color: acc.tipo === 'entrada' ? '#059669' : '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>👤</div>
                                     <div>
@@ -129,8 +129,8 @@ const Dashboard = () => {
                             </div>
                         ))}
                         {accesosFiltrados.length === 0 && (
-                            <div style={{ textAlign: 'center', padding: '4rem', background: 'white', borderRadius: '24px', color: 'var(--text-muted)' }}>
-                                🔍 No se encontraron resultados para "<strong>{busqueda}</strong>"
+                            <div style={{ textAlign: 'center', padding: '4rem', background: 'var(--surface)', borderRadius: '24px', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
+                                🔍 No se encontraron resultados para "<strong style={{ color: 'var(--text-main)' }}>{busqueda}</strong>"
                             </div>
                         )}
                     </div>

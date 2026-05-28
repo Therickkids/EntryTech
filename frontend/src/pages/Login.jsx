@@ -40,7 +40,7 @@ const Login = () => {
 
     return (
         <div className="auth-container">
-            <div className="card auth-card">
+            <div className="card auth-card animate-scale-in">
                 <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
                     <h2 className="typewriter-text">
                         EntryTech
@@ -77,7 +77,7 @@ const Login = () => {
                             </Link>
                         </div>
                     </div>
-                    <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+                    <button type="submit" className="btn btn-primary btn-block click-effect" disabled={loading}>
                         {loading ? (isWakingUp ? 'Despertando servidor...' : 'Ingresando...') : 'Iniciar Sesión'}
                     </button>
                 </form>

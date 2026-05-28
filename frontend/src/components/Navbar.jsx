@@ -50,13 +50,21 @@ const Navbar = () => {
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderLeft: '1px solid var(--border)', paddingLeft: '0.75rem' }}>
                         <div style={{
-                            width: '28px', height: '28px', borderRadius: '50%',
-                            background: '#f1f5f9', color: 'var(--primary-color)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontWeight: '800', fontSize: '0.7rem', border: '1px solid var(--border)',
-                            overflow: 'hidden'
+                            width: '32px', height: '32px', borderRadius: '50%',
+                            background: 'linear-gradient(135deg, var(--primary-color), var(--secondary))',
+                            padding: '2px',
+                            boxShadow: '0 0 12px rgba(99,102,241,0.5)',
+                            flexShrink: 0,
                         }}>
-                            {usuario.foto_url ? <img src={usuario.foto_url} alt="P" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : inicial}
+                            <div style={{
+                                width: '100%', height: '100%', borderRadius: '50%',
+                                background: 'rgba(10,10,12,0.9)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontWeight: '800', fontSize: '0.7rem', color: 'var(--primary-color)',
+                                overflow: 'hidden'
+                            }}>
+                                {usuario.foto_url ? <img src={usuario.foto_url} alt="P" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : inicial}
+                            </div>
                         </div>
                         <span className="nav-name" style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-main)', opacity: 0.8 }}>
                             {usuario.nombre?.split(' ')[0]}
@@ -78,21 +86,22 @@ const Navbar = () => {
                 </div>
 
                 <div className="sidebar-menu">
-                    {navLinks.map(link => (
-                        <Link 
-                            key={link.path} 
-                            to={link.path} 
-                            className={`sidebar-link ${location.pathname === link.path ? 'active' : ''}`}
+                    {navLinks.map((link, idx) => (
+                        <Link
+                            key={link.path}
+                            to={link.path}
+                            className={`sidebar-link animate-slide-up ${location.pathname === link.path ? 'active' : ''}`}
+                            style={{ animationDelay: `${idx * 60}ms` }}
                             onClick={toggleSidebar}
                         >
                             {link.label}
                         </Link>
                     ))}
-                    
+
                     <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
                         {!showConfirmLogout ? (
-                            <button 
-                                onClick={() => setShowConfirmLogout(true)} 
+                            <button
+                                onClick={() => setShowConfirmLogout(true)}
                                 className="btn-logout-premium"
                             >
                                 <span>Cerrar Sesión</span>
@@ -112,7 +121,12 @@ const Navbar = () => {
                 </div>
 
                 <div style={{ marginTop: 'auto', fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-                    v2.1 Premium Edition
+                    <span style={{
+                        display: 'inline-block', padding: '0.2rem 0.7rem',
+                        borderRadius: '20px', border: '1px solid rgba(99,102,241,0.3)',
+                        color: 'var(--primary-color)', fontWeight: '700', fontSize: '0.65rem',
+                        background: 'rgba(99,102,241,0.08)'
+                    }}>✦ v3.0 Ultra-Premium</span>
                 </div>
             </aside>
         </>
@@ -120,4 +134,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

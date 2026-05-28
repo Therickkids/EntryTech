@@ -5,6 +5,11 @@ import { verifyToken, verifyAdmin } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
+// Ruta de ping para despertar el backend
+router.get('/ping', (req, res) => {
+    res.status(200).json({ mensaje: 'pong' });
+});
+
 // Autenticación & Usuarios
 router.post('/register', register);
 router.post('/login', login);
@@ -16,6 +21,7 @@ router.delete('/usuarios/:id', verifyToken, verifyAdmin, deleteUsuario); // Elim
 // Accesos
 router.post('/acceso', registrarAcceso); // Kiosko o Lector (público o con API Key)
 router.get('/accesos', verifyToken, verifyAdmin, getAccesos); // Visualizar logs (Admin)
+router.get('/usuarios/:id/qr', verifyToken, getQrInfo); // Obtener info de QR actual
 router.put('/usuarios/:id/foto', verifyToken, uploadFoto); // Subir foto propia
 
 export default router;

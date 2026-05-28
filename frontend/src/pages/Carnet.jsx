@@ -10,7 +10,27 @@ const Carnet = () => {
 
     useEffect(() => {
         const userData = localStorage.getItem('usuario');
-        if (userData) setUsuario(JSON.parse(userData));
+        if (!userData) return;
+        
+        const parsedUser = JSON.parse(userData);
+        setUsuario(parsedUser);
+
+        // Función para sincronizar el QR dinámico desde el servidor
+        const fetchDynamicQR = async () => {
+            try {
+                const res = await api.get(`/usuarios/${parsedUser.id}/qr`);
+                setUsuario(prev => prev ? { ...prev, carnet: { ...prev.carnet, codigo_qr: res.data.codigo_qr } } : prev);
+            } catch (err) {
+                console.error("Error al refrescar el QR dinámico:", err);
+            }
+        };
+
+        // Sincronizar inmediatamente al abrir
+        fetchDynamicQR();
+
+        // Refrescar automáticamente cada 15 segundos
+        const intervalId = setInterval(fetchDynamicQR, 15000);
+        return () => clearInterval(intervalId);
     }, []);
 
     if (!usuario || !usuario.carnet) {
@@ -55,15 +75,17 @@ const Carnet = () => {
 
     return (
         <div className="main-content" style={{ display: 'flex', justifyContent: 'center', paddingTop: '1rem' }}>
-            <div style={{ width: '100%', maxWidth: '420px' }}>
-                <h2 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>Mi Carnet Digital</h2>
+            <div className="animate-slide-up" style={{ width: '100%', maxWidth: '420px' }}>
+                <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', fontFamily: 'var(--font-heading)', letterSpacing: '-0.04em' }}>Mi Carnet Digital</h2>
 
                 {/* ======= CARNET PREMIUM ======= */}
-                <div style={{
+                <div className="animate-scale-in" style={{
                     borderRadius: '24px',
                     overflow: 'hidden',
-                    boxShadow: '0 25px 60px rgba(79,70,229,0.22), 0 0 0 1px rgba(79,70,229,0.12)',
-                    background: 'white',
+                    boxShadow: '0 25px 60px rgba(99,102,241,0.25), 0 0 0 1px rgba(99,102,241,0.15)',
+                    background: 'rgba(15, 15, 20, 0.8)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255,255,255,0.08)',
                     marginBottom: '1.5rem'
                 }}>
                     {/* Header con gradiente y foto */}
@@ -148,11 +170,11 @@ const Carnet = () => {
                     </div>
 
                     {/* Info con chips */}
-                    <div style={{ padding: '1.5rem', borderBottom: '1px solid #f0f4f8' }}>
+                    <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                             <div>
                                 <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Correo</div>
-                                <div style={{ fontSize: '0.82rem', fontWeight: '600', marginTop: '0.25rem', wordBreak: 'break-all' }}>{usuario.correo}</div>
+                                <div style={{ fontSize: '0.82rem', fontWeight: '600', marginTop: '0.25rem', wordBreak: 'break-all', color: 'var(--text-main)' }}>{usuario.correo}</div>
                             </div>
                             <div>
                                 <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Estado</div>
@@ -178,22 +200,23 @@ const Carnet = () => {
                     {/* QR Code */}
                     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
                         <div style={{
-                            padding: '1rem', background: 'white', borderRadius: '16px',
-                            boxShadow: '0 4px 20px rgba(79,70,229,0.12)',
-                            border: '2px solid rgba(79,70,229,0.1)'
+                            padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '16px',
+                            boxShadow: '0 0 30px rgba(99,102,241,0.2)',
+                            border: '1px solid rgba(99,102,241,0.2)'
                         }}>
-                            <QRCodeSVG value={usuario.carnet.codigo_qr} size={190} />
+                            <QRCodeSVG value={usuario.carnet.codigo_qr} size={190} bgColor="transparent" fgColor="#ffffff" />
                         </div>
                         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', margin: 0 }}>
-                            Muestra este código en el lector de acceso
+                            Muestra este código en el lector de acceso.<br/>
+                            <span style={{ color: 'var(--success)', fontWeight: '700', fontSize: '0.7rem' }}>● Código Dinámico de Un Solo Uso</span>
                         </p>
                     </div>
 
                     {/* Footer */}
                     <div style={{
-                        background: 'linear-gradient(to right, #f8fafc, #f1f5f9)',
+                        background: 'rgba(255,255,255,0.03)',
                         padding: '0.85rem 1.5rem',
-                        borderTop: '1px solid #e2e8f0',
+                        borderTop: '1px solid var(--border)',
                         display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                     }}>
                         <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: '600', letterSpacing: '0.08em' }}>

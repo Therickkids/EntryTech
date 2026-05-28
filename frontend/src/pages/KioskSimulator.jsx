@@ -8,15 +8,7 @@ const KioskSimulator = () => {
     const [cameraActive, setCameraActive] = useState(false);
     const scannerRef = useRef(null);
 
-    // Al salir del componente, apagar cámara si estaba activa
-    useEffect(() => {
-        return () => {
-            if (scannerRef.current) {
-                scannerRef.current.clear().catch(() => {});
-                scannerRef.current = null;
-            }
-        };
-    }, []);
+    // (El cleanup de la cámara ha sido optimizado y unificado en un solo useEffect más abajo)
 
     // Sonido de Caja Registradora / Check-in Pro
     const playSound = (tipo) => {
@@ -64,8 +56,20 @@ const KioskSimulator = () => {
         handleStartCamera();
         
         return () => {
+            // Un solo bloque de cleanup robusto para evitar colisiones entre stop() y clear()
             if (scannerRef.current) {
-                scannerRef.current.stop().catch(() => {});
+                const scanner = scannerRef.current;
+                scannerRef.current = null; // Anular inmediatamente para evitar ejecuciones duplicadas
+                
+                try {
+                    scanner.stop().then(() => {
+                        try { scanner.clear(); } catch(e) {}
+                    }).catch(() => {
+                        try { scanner.clear(); } catch(e) {}
+                    });
+                } catch (e) {
+                    try { scanner.clear(); } catch(e) {}
+                }
             }
         };
     }, []);
@@ -167,24 +171,34 @@ const KioskSimulator = () => {
     };
 
     return (
-        <div className="main-content" style={{ maxWidth: '800px', margin: '0 auto', paddingBottom: '5rem' }}>
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '0.5rem' }}>Terminal de Acceso</h1>
+        <div className="main-content animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto', paddingBottom: '5rem' }}>
+            <div className="animate-slide-up" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '20px', padding: '0.3rem 1rem', marginBottom: '1rem' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)', display: 'inline-block', animation: 'pulse 2s infinite' }}></span>
+                    <span style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--success)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Sistema Activo</span>
+                </div>
+                <h1 style={{ fontSize: '2.2rem', fontWeight: '900', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)', letterSpacing: '-0.05em' }}>Terminal de Acceso</h1>
                 <p style={{ color: 'var(--text-muted)' }}>Simulador de Lector Inteligente EntryTech</p>
             </div>
 
-            <div style={{ position: 'relative', borderRadius: '30px', overflow: 'hidden', background: '#1a1a1a', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', border: '4px solid #2d2d2d' }}>
-                
+            <div className="animate-scale-in" style={{ position: 'relative', borderRadius: '30px', overflow: 'hidden', background: '#050505', boxShadow: '0 0 0 1px rgba(99,102,241,0.2), 0 30px 80px rgba(0,0,0,0.6)', border: '1px solid rgba(99,102,241,0.15)' }}>
+                {/* Grid ciberpúntico de fondo */}
+                <div style={{
+                    position: 'absolute', inset: 0, zIndex: 1, opacity: 0.06,
+                    backgroundImage: 'linear-gradient(var(--success) 1px, transparent 1px), linear-gradient(90deg, var(--success) 1px, transparent 1px)',
+                    backgroundSize: '30px 30px', pointerEvents: 'none'
+                }} />
                 {/* Pantalla del Escáner */}
-                <div id="reader" style={{ width: '100%', minHeight: '400px', background: '#000' }}></div>
+                <div id="reader" style={{ width: '100%', minHeight: '400px', background: '#000', position: 'relative', zIndex: 2 }}></div>
 
                 {/* Overlays de Estado */}
                 {!cameraActive && !resultado && (
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(10px)', color: 'white', zIndex: 10 }}>
-                        <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>📷</div>
-                        <h3 style={{ marginBottom: '1.5rem' }}>Sistema en Espera</h3>
-                        <button onClick={handleStartCamera} className="btn btn-primary" style={{ padding: '1rem 2.5rem', borderRadius: '50px', fontSize: '1.1rem', fontWeight: 'bold', boxShadow: '0 0 20px rgba(79,70,229,0.5)' }}>
-                            Activar Escáner
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', color: 'white', zIndex: 10 }}>
+                        <div style={{ fontSize: '4rem', marginBottom: '1rem', filter: 'drop-shadow(0 0 20px rgba(99,102,241,0.8))' }}>📷</div>
+                        <h3 style={{ marginBottom: '0.5rem', fontFamily: 'var(--font-heading)', letterSpacing: '-0.03em' }}>Sistema en Espera</h3>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>Apunta la cámara al código QR</p>
+                        <button onClick={handleStartCamera} className="btn btn-primary click-effect" style={{ padding: '1rem 2.5rem', borderRadius: '50px', fontSize: '1rem', fontWeight: '700', boxShadow: '0 0 30px rgba(99,102,241,0.5)' }}>
+                            ⚡ Activar Escáner
                         </button>
                     </div>
                 )}
@@ -195,23 +209,27 @@ const KioskSimulator = () => {
                         position: 'absolute', inset: 0, 
                         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                         background: resultado.exito 
-                            ? (resultado.tipo === 'entrada' ? 'rgba(16, 185, 129, 0.95)' : 'rgba(59, 130, 246, 0.95)')
-                            : 'rgba(239, 68, 68, 0.95)',
+                            ? (resultado.tipo === 'entrada' 
+                                ? 'linear-gradient(135deg, rgba(5,150,105,0.97), rgba(16,185,129,0.97))'
+                                : 'linear-gradient(135deg, rgba(37,99,235,0.97), rgba(14,165,233,0.97))')
+                            : 'linear-gradient(135deg, rgba(185,28,28,0.97), rgba(239,68,68,0.97))',
                         color: 'white', zIndex: 20,
-                        animation: 'fadeIn 0.3s ease-out'
+                        animation: 'fadeIn 0.2s ease-out'
                     }}>
-                        <div style={{ fontSize: '6rem', marginBottom: '1rem', animation: 'bounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
+                        {/* Efecto de luz de fondo */}
+                        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
+                        <div style={{ fontSize: '7rem', marginBottom: '0.5rem', animation: 'bounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)', filter: 'drop-shadow(0 0 30px rgba(255,255,255,0.5))' }}>
                             {resultado.exito ? (resultado.tipo === 'entrada' ? '✅' : '🚪') : '❌'}
                         </div>
-                        <h2 style={{ fontSize: '2.5rem', fontWeight: '900', marginBottom: '0.5rem', textTransform: 'uppercase' }}>
+                        <h2 style={{ fontSize: '3rem', fontWeight: '900', marginBottom: '0.25rem', letterSpacing: '-0.05em', fontFamily: 'var(--font-heading)', textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
                             {resultado.exito ? (resultado.tipo === 'entrada' ? 'ENTRADA' : 'SALIDA') : 'DENEGADO'}
                         </h2>
-                        <p style={{ fontSize: '1.5rem', fontWeight: '500', opacity: 0.9 }}>
+                        <p style={{ fontSize: '1.1rem', fontWeight: '500', opacity: 0.9, letterSpacing: '0.02em' }}>
                             {resultado.mensaje}
                         </p>
                         {resultado.nombre && (
-                            <div style={{ marginTop: '2rem', padding: '0.5rem 2rem', background: 'rgba(255,255,255,0.2)', borderRadius: '50px', fontSize: '1.2rem', fontWeight: '700' }}>
-                                {resultado.nombre}
+                            <div style={{ marginTop: '1.5rem', padding: '0.6rem 2rem', background: 'rgba(255,255,255,0.2)', borderRadius: '50px', fontSize: '1.1rem', fontWeight: '700', backdropFilter: 'blur(5px)', border: '1px solid rgba(255,255,255,0.3)' }}>
+                                👤 {resultado.nombre}
                             </div>
                         )}
                     </div>
@@ -220,23 +238,23 @@ const KioskSimulator = () => {
                 {/* Línea de escaneo animada */}
                 {cameraActive && !resultado && (
                     <div style={{
-                        position: 'absolute', top: '0', left: '0', width: '100%', height: '4px',
-                        background: 'linear-gradient(to right, transparent, var(--primary-color), transparent)',
-                        boxShadow: '0 0 15px var(--primary-color)',
+                        position: 'absolute', top: '0', left: '0', width: '100%', height: '3px',
+                        background: 'linear-gradient(90deg, transparent 0%, var(--success) 50%, transparent 100%)',
+                        boxShadow: '0 0 20px var(--success), 0 0 40px var(--success)',
                         zIndex: 5,
-                        animation: 'scanMove 2s infinite linear'
+                        animation: 'scanMove 2.5s ease-in-out infinite'
                     }}></div>
                 )}
             </div>
 
             {/* Controles Inferiores */}
-            <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
+            <div className="animate-slide-up delay-200" style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem' }}>
                 {cameraActive && (
-                    <button onClick={handleStopCamera} className="btn btn-secondary" style={{ flex: 1, padding: '1rem', borderRadius: '15px', fontWeight: '700' }}>
+                    <button onClick={handleStopCamera} className="btn btn-secondary click-effect" style={{ flex: 1, padding: '1rem', borderRadius: '20px', fontWeight: '700' }}>
                         ⏹ Detener Sistema
                     </button>
                 )}
-                <button onClick={() => alert('NFC se activa al acercar tarjeta en dispositivos compatibles')} className="btn btn-primary" style={{ flex: 1, padding: '1rem', borderRadius: '15px', fontWeight: '700', background: 'var(--secondary)' }}>
+                <button onClick={() => alert('NFC se activa al acercar tarjeta en dispositivos compatibles')} className="btn btn-primary click-effect" style={{ flex: 1, padding: '1rem', borderRadius: '20px', fontWeight: '700', background: 'linear-gradient(135deg, var(--secondary), #06b6d4)' }}>
                     📡 Modo NFC
                 </button>
             </div>

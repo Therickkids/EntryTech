@@ -41,13 +41,11 @@ const Register = () => {
 
     return (
         <div className="auth-container">
-            <div className="card auth-card">
-                <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--primary-color)' }}>
-                    EntryTech
-                </h2>
-                <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: '2rem' }}>
-                    Crear Cuenta Nueva
-                </p>
+            <div className="card auth-card animate-scale-in">
+                <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                    <div style={{ fontSize: '2.5rem', fontWeight: '900', fontFamily: 'var(--font-heading)', letterSpacing: '-0.05em', background: 'linear-gradient(135deg, #e0e7ff, #818cf8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '0.25rem' }}>EntryTech</div>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600' }}>Crear Cuenta Nueva</p>
+                </div>
                 {error && <div style={{ color: 'var(--danger)', marginBottom: '1rem', textAlign: 'center' }}>{error}</div>}
 
                 <form onSubmit={handleRegister}>
@@ -92,7 +90,7 @@ const Register = () => {
                             required
                         />
                     </div>
-                    <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+                    <button type="submit" className="btn btn-primary btn-block click-effect" disabled={loading}>
                         {loading ? (isWakingUp ? 'Despertando servidor...' : 'Registrando...') : 'Crear Cuenta'}
                     </button>
                 </form>

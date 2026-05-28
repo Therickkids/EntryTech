@@ -49,6 +49,13 @@ export const registrarAcceso = async (req, res) => {
             [usuario_id, nuevoTipo]
         );
 
+        // 5. Generar un nuevo QR inmediatamente (Hacerlo dinámico y de un solo uso)
+        const nuevoQR = 'QR-' + Math.random().toString(36).substring(2, 11).toUpperCase() + '-' + Date.now();
+        await pool.query(
+            'UPDATE carnet SET codigo_qr = $1 WHERE usuario_id = $2',
+            [nuevoQR, usuario_id]
+        );
+
         res.json({
             mensaje: `Acceso autorizado (${nuevoTipo})`,
             usuario_id,

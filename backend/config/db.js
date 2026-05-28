@@ -13,9 +13,11 @@ const poolConfig = process.env.DATABASE_URL
       port: parseInt(process.env.DB_PORT),
     };
 
+const isLocalhost = process.env.DB_HOST === 'localhost' || process.env.DB_HOST === '127.0.0.1';
+
 const pool = new Pool({
   ...poolConfig,
-  ssl: { rejectUnauthorized: false }
+  ...( !isLocalhost && { ssl: { rejectUnauthorized: false } } )
 });
 
 pool.on('connect', () => {

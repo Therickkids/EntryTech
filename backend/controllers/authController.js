@@ -15,21 +15,27 @@ export const register = async (req, res) => {
     }
 
     try {
-        // Verificar si la cédula ya existe
-        const cedulaCheck = await pool.query('SELECT id FROM usuarios WHERE cedula = $1', [cedula]);
+        // Iniciar el hasheo de contraseña y las comprobaciones de duplicados en paralelo
+        const hashingPromise = (async () => {
+            const salt = await bcrypt.genSalt(10);
+            return bcrypt.hash(password, salt);
+        })();
+
+        // Consultar cédula y correo en paralelo para ahorrar latencia de red
+        const [cedulaCheck, userCheck] = await Promise.all([
+            pool.query('SELECT id FROM usuarios WHERE cedula = $1', [cedula]),
+            pool.query('SELECT id FROM usuarios WHERE correo = $1', [correo])
+        ]);
+
         if (cedulaCheck.rows.length > 0) {
             return res.status(400).json({ mensaje: 'La cédula ya está registrada' });
         }
-
-        // Verificar si el correo ya existe
-        const userCheck = await pool.query('SELECT id FROM usuarios WHERE correo = $1', [correo]);
         if (userCheck.rows.length > 0) {
             return res.status(400).json({ mensaje: 'El correo ya está registrado' });
         }
 
-        // Hashear password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        // Esperar a que el hasheo de la contraseña termine (generalmente ya está listo)
+        const hashedPassword = await hashingPromise;
 
         // Crear usuario
         console.log('Intentando insertar usuario...');
@@ -70,8 +76,14 @@ export const login = async (req, res) => {
     }
 
     try {
-        // Buscar usuario
-        const result = await pool.query('SELECT * FROM usuarios WHERE correo = $1', [correo]);
+        // Buscar usuario y su carnet en una sola consulta mediante LEFT JOIN para ahorrar latencia de red
+        const result = await pool.query(`
+            SELECT u.*, c.codigo_nfc, c.codigo_qr 
+            FROM usuarios u
+            LEFT JOIN carnet c ON u.id = c.usuario_id
+            WHERE u.correo = $1
+        `, [correo]);
+
         if (result.rows.length === 0) {
             return res.status(404).json({ mensaje: 'Usuario no encontrado' });
         }
@@ -83,10 +95,6 @@ export const login = async (req, res) => {
         if (!isMatch) {
             return res.status(401).json({ mensaje: 'Credenciales inválidas' });
         }
-
-        // Obtener datos del carnet
-        const carnetResult = await pool.query('SELECT codigo_nfc, codigo_qr FROM carnet WHERE usuario_id = $1', [user.id]);
-        const carnet = carnetResult.rows[0];
 
         // Generar JWT
         const token = jwt.sign(
@@ -105,7 +113,10 @@ export const login = async (req, res) => {
                 correo: user.correo,
                 rol: user.rol,
                 foto_url: user.foto_url || null,
-                carnet
+                carnet: user.codigo_nfc || user.codigo_qr ? {
+                    codigo_nfc: user.codigo_nfc,
+                    codigo_qr: user.codigo_qr
+                } : null
             }
         });
 
@@ -191,7 +202,7 @@ export const resetPassword = async (req, res) => {
         const hashedPassword = await bcrypt.hash(nuevaPassword, salt);
 
         // Actualizar password
-        await pool.query('UPDATE usuarios SET password = $1 WHERE correo = $2', [hashedPassword, correo]);
+        await pool.query('UPDATE usuarios SET password = $1 WHERE LOWER(correo) = $2', [hashedPassword, correo]);
 
         res.json({ mensaje: 'Contraseña actualizada exitosamente. Ya puedes iniciar sesión.' });
     } catch (error) {

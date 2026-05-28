@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// URL del backend en Render (PRODUCCIÓN)
+// URL del backend en Render (PRODUCCIÓN) o local
 const api = axios.create({
-    baseURL: 'https://entrytech-backend.onrender.com/api',
+    baseURL: import.meta.env.VITE_API_URL || 'https://entrytech-backend.onrender.com/api',
 });
 
 // Interceptor para agregar token a peticiones

@@ -109,9 +109,9 @@ const Usuarios = () => {
                                         <td style={{ padding: '1rem 1.2rem' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                                                 <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: '800', color: 'var(--primary-color)' }}>
-                                                    {user.nombre.charAt(0).toUpperCase()}
+                                                    {(user.nombre || '?').charAt(0).toUpperCase()}
                                                 </div>
-                                                <div style={{ fontWeight: '700', fontSize: '0.95rem' }}>{user.nombre}</div>
+                                                <div style={{ fontWeight: '700', fontSize: '0.95rem' }}>{user.nombre || 'Sin Nombre'}</div>
                                             </div>
                                         </td>
                                         <td style={{ padding: '1.2rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500' }}>{user.cedula}</td>
