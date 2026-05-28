@@ -23,18 +23,25 @@ const Carnet = () => {
 
         let isMounted = true;
         let timeoutId = null;
+        let isFirstSync = true;
 
         // Función para sincronizar el QR dinámico desde el servidor
         const fetchDynamicQR = async () => {
             if (!isMounted) return;
-            setSyncStatus('syncing');
-            setSyncErrorMsg('');
+            
+            if (isFirstSync) {
+                setSyncStatus('syncing');
+                setSyncErrorMsg('');
+            }
+
             try {
                 const res = await api.get(`/usuarios/${parsedUser.id}/qr?t=${Date.now()}`);
                 const newQR = res.data.codigo_qr;
                 
                 if (isMounted) {
                     setSyncStatus('ok');
+                    isFirstSync = false; // Ya conectó, no volver a mostrar "Sincronizando..."
+
                     if (lastKnownQR.current && lastKnownQR.current !== newQR) {
                         // ¡El QR realmente cambió!
                         setQrUpdatedMsg(true);
@@ -55,6 +62,7 @@ const Carnet = () => {
                 if (isMounted) {
                     setSyncStatus('error');
                     setSyncErrorMsg(err.response?.data?.mensaje || err.message || 'Error desconocido');
+                    isFirstSync = true; // Si hay error, volver a mostrar "Sincronizando..." en el siguiente intento
                 }
             } finally {
                 if (isMounted) {
