@@ -20,43 +20,52 @@ const Carnet = () => {
         setUsuario(parsedUser);
         lastKnownQR.current = parsedUser.carnet?.codigo_qr || null;
 
+        let isMounted = true;
+        let timeoutId = null;
+
         // Función para sincronizar el QR dinámico desde el servidor
         const fetchDynamicQR = async () => {
+            if (!isMounted) return;
             setSyncStatus('syncing');
             try {
                 const res = await api.get(`/usuarios/${parsedUser.id}/qr?t=${Date.now()}`);
                 const newQR = res.data.codigo_qr;
                 
-                setSyncStatus('ok');
-                setTimeout(() => setSyncStatus('idle'), 1500);
+                if (isMounted) {
+                    setSyncStatus('ok');
+                    if (lastKnownQR.current && lastKnownQR.current !== newQR) {
+                        // ¡El QR realmente cambió!
+                        setQrUpdatedMsg(true);
+                        setTimeout(() => { if (isMounted) setQrUpdatedMsg(false); }, 5000);
+                    }
 
-                if (lastKnownQR.current && lastKnownQR.current !== newQR) {
-                    // ¡El QR realmente cambió!
-                    setQrUpdatedMsg(true);
-                    setTimeout(() => setQrUpdatedMsg(false), 5000);
+                    lastKnownQR.current = newQR;
+
+                    setUsuario(prev => {
+                        if (!prev) return prev;
+                        const updated = { ...prev, carnet: { ...prev.carnet, codigo_qr: newQR } };
+                        localStorage.setItem('usuario', JSON.stringify(updated));
+                        return updated;
+                    });
                 }
-
-                lastKnownQR.current = newQR;
-
-                setUsuario(prev => {
-                    if (!prev) return prev;
-                    const updated = { ...prev, carnet: { ...prev.carnet, codigo_qr: newQR } };
-                    localStorage.setItem('usuario', JSON.stringify(updated));
-                    return updated;
-                });
             } catch (err) {
                 console.error("Error al refrescar el QR dinámico:", err);
-                setSyncStatus('error');
-                setTimeout(() => setSyncStatus('idle'), 2000);
+                if (isMounted) setSyncStatus('error');
+            } finally {
+                if (isMounted) {
+                    // Volver a llamar después de 3 segundos, solo si ha terminado la petición anterior
+                    timeoutId = setTimeout(fetchDynamicQR, 3000);
+                }
             }
         };
 
-        // Sincronizar inmediatamente al abrir
+        // Iniciar el ciclo de sincronización
         fetchDynamicQR();
 
-        // Refrescar automáticamente cada 3 segundos
-        const intervalId = setInterval(fetchDynamicQR, 3000);
-        return () => clearInterval(intervalId);
+        return () => {
+            isMounted = false;
+            if (timeoutId) clearTimeout(timeoutId);
+        };
     }, []);
 
     if (!usuario || !usuario.carnet) {
