@@ -20,7 +20,13 @@ const Carnet = () => {
         const fetchDynamicQR = async () => {
             try {
                 const res = await api.get(`/usuarios/${parsedUser.id}/qr`);
-                setUsuario(prev => prev ? { ...prev, carnet: { ...prev.carnet, codigo_qr: res.data.codigo_qr } } : prev);
+                setUsuario(prev => {
+                    if (!prev) return prev;
+                    const updated = { ...prev, carnet: { ...prev.carnet, codigo_qr: res.data.codigo_qr } };
+                    // Guardar en localStorage para que persista al recargar la página
+                    localStorage.setItem('usuario', JSON.stringify(updated));
+                    return updated;
+                });
             } catch (err) {
                 console.error("Error al refrescar el QR dinámico:", err);
             }
@@ -29,8 +35,8 @@ const Carnet = () => {
         // Sincronizar inmediatamente al abrir
         fetchDynamicQR();
 
-        // Refrescar automáticamente cada 15 segundos
-        const intervalId = setInterval(fetchDynamicQR, 15000);
+        // Refrescar automáticamente cada 3 segundos para que el cambio sea casi instantáneo al escanear
+        const intervalId = setInterval(fetchDynamicQR, 3000);
         return () => clearInterval(intervalId);
     }, []);
 
