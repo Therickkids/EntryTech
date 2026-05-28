@@ -19,7 +19,8 @@ const Carnet = () => {
         // Función para sincronizar el QR dinámico desde el servidor
         const fetchDynamicQR = async () => {
             try {
-                const res = await api.get(`/usuarios/${parsedUser.id}/qr`);
+                // Agregar timestamp (?t=...) para evitar que el navegador guarde el resultado en caché
+                const res = await api.get(`/usuarios/${parsedUser.id}/qr?t=${Date.now()}`);
                 setUsuario(prev => {
                     if (!prev) return prev;
                     const updated = { ...prev, carnet: { ...prev.carnet, codigo_qr: res.data.codigo_qr } };
