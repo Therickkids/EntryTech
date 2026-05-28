@@ -55,11 +55,19 @@ const Login = () => {
                 <div className="auth-intro animate-fade-in">
                     <div style={{ height: '70px', display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
                         {!showLock ? (
-                            <h1 className="animate-fade-in" style={{ margin: 0, fontSize: '3.5rem', fontFamily: 'var(--font-heading)', background: 'linear-gradient(135deg, #fff, #818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: '1' }}>
+                            <h1
+                                className="animate-fade-in"
+                                onMouseLeave={() => setShowLock(true)}
+                                style={{ margin: 0, fontSize: '3.5rem', fontFamily: 'var(--font-heading)', background: 'linear-gradient(135deg, #fff, #818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: '1', cursor: 'default' }}
+                            >
                                 EntryTech
                             </h1>
                         ) : (
-                            <div className="animate-scale-in" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', background: 'rgba(99, 102, 241, 0.1)', padding: '1rem', borderRadius: '24px', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
+                            <div
+                                className="animate-scale-in"
+                                onMouseEnter={() => setShowLock(false)}
+                                style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', background: 'rgba(99, 102, 241, 0.1)', padding: '1rem', borderRadius: '24px', border: '1px solid rgba(99, 102, 241, 0.3)', cursor: 'pointer', transition: 'background 0.3s, transform 0.3s' }}
+                            >
                                 <Lock size={48} strokeWidth={2.5} />
                             </div>
                         )}
