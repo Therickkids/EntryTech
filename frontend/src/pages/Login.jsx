@@ -1,8 +1,104 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Shield, Zap, Smartphone, Lock } from 'lucide-react';
 import api from '../services/api';
 
+// ── Componente de partículas flotantes ──
+const ParticlesCanvas = () => {
+    const canvasRef = useRef(null);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let animationId;
+        let particles = [];
+
+        const resize = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        };
+        resize();
+        window.addEventListener('resize', resize);
+
+        // Crear partículas
+        const PARTICLE_COUNT = 60;
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 2 + 0.5,
+                vx: (Math.random() - 0.5) * 0.4,
+                vy: (Math.random() - 0.5) * 0.4,
+                opacity: Math.random() * 0.5 + 0.1,
+                color: Math.random() > 0.5 ? '99,102,241' : '14,165,233', // indigo o cyan
+            });
+        }
+
+        const draw = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar partículas
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${p.color},${p.opacity})`;
+                ctx.fill();
+            });
+
+            // Dibujar líneas entre partículas cercanas
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(99,102,241,${0.08 * (1 - dist / 120)})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Mover partículas
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+            });
+
+            animationId = requestAnimationFrame(draw);
+        };
+
+        draw();
+
+        return () => {
+            cancelAnimationFrame(animationId);
+            window.removeEventListener('resize', resize);
+        };
+    }, []);
+
+    return (
+        <canvas
+            ref={canvasRef}
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                zIndex: 0,
+                pointerEvents: 'none',
+            }}
+        />
+    );
+};
+
+// ── Componente principal Login ──
 const Login = () => {
     const [correo, setCorreo] = useState('');
     const [password, setPassword] = useState('');
@@ -17,7 +113,7 @@ const Login = () => {
         if (loading) {
             timer = setTimeout(() => {
                 setIsWakingUp(true);
-            }, 4000); // Mostrar mensaje después de 4 segundos
+            }, 4000);
         } else {
             setIsWakingUp(false);
         }
@@ -25,7 +121,6 @@ const Login = () => {
     }, [loading]);
 
     useEffect(() => {
-        // Animación de texto a candado
         const lockTimer = setTimeout(() => {
             setShowLock(true);
         }, 3500);
@@ -49,10 +144,13 @@ const Login = () => {
     };
 
     return (
-        <div className="auth-container">
-            <div className="auth-wrapper">
+        <div className="auth-container" style={{ position: 'relative', overflow: 'hidden' }}>
+            {/* Fondo de partículas */}
+            <ParticlesCanvas />
+
+            <div className="auth-wrapper" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '4rem', width: '100%', maxWidth: '1100px' }}>
                 {/* Lado Izquierdo: Introducción / Landing */}
-                <div className="auth-intro animate-fade-in">
+                <div className="auth-intro animate-fade-in" style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ height: '70px', display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
                         {!showLock ? (
                             <h1
@@ -72,10 +170,10 @@ const Login = () => {
                             </div>
                         )}
                     </div>
-                    <h2 style={{ fontSize: '1.8rem', color: 'var(--text-main)', marginBottom: '1rem', lineHeight: '1.2' }}>El futuro del acceso inteligente.</h2>
-                    <p style={{ fontSize: '1.05rem', color: 'var(--text-muted)' }}>Una plataforma de seguridad de próxima generación diseñada para gestionar identidades y proteger tus espacios con tecnología sin contacto y criptografía dinámica.</p>
+                    <h2 style={{ fontSize: '2.2rem', color: 'var(--text-main)', marginBottom: '1rem', lineHeight: '1.2', fontFamily: 'var(--font-heading)', fontWeight: 900, letterSpacing: '-1px' }}>El futuro del acceso inteligente.</h2>
+                    <p style={{ fontSize: '1.05rem', color: 'var(--text-muted)', lineHeight: '1.7' }}>Una plataforma de seguridad de próxima generación diseñada para gestionar identidades y proteger tus espacios con tecnología sin contacto y criptografía dinámica.</p>
                     
-                    <div className="intro-features" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
                         <div className="intro-feature">
                             <div style={{ color: 'var(--primary-color)' }}>
                                 <Shield size={28} />
@@ -107,7 +205,7 @@ const Login = () => {
                 </div>
 
                 {/* Lado Derecho: Formulario de Login */}
-                <div className="auth-card animate-scale-in">
+                <div className="auth-card animate-scale-in" style={{ flexShrink: 0, width: '420px', maxWidth: '420px' }}>
                     <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
                         <h2 className="typewriter-text">
                             EntryTech
@@ -139,7 +237,7 @@ const Login = () => {
                                 required
                             />
                             <div style={{ textAlign: 'right', marginTop: '0.5rem' }}>
-                                <Link to="/reset-password" style={{ color: 'var(--primary-color)', fontSize: '0.85rem', fontWeight: '600', textDecoration: 'none', transition: 'color 0.2s' }} className="hover-glow">
+                                <Link to="/reset-password" style={{ color: 'var(--primary-color)', fontSize: '0.85rem', fontWeight: '600', textDecoration: 'none', transition: 'color 0.2s' }}>
                                     ¿Olvidaste tu contraseña?
                                 </Link>
                             </div>
@@ -151,7 +249,7 @@ const Login = () => {
 
                     <p style={{marginTop: '1.5rem', textAlign: 'center', fontSize: '0.9rem'}}>
                         ¿No tienes cuenta?{' '}
-                        <Link to="/register" style={{ color: 'var(--primary-color)', fontWeight: '600', textDecoration: 'none' }} className="hover-glow">
+                        <Link to="/register" style={{ color: 'var(--primary-color)', fontWeight: '600', textDecoration: 'none' }}>
                             Crear Cuenta
                         </Link>
                     </p>
