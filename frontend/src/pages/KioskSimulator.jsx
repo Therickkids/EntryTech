@@ -86,76 +86,76 @@ const KioskSimulator = () => {
             scannerRef.current = html5QrCode;
 
             const config = { 
-                fps: 20, 
+                fps: 10, 
                 qrbox: { width: 250, height: 250 },
                 aspectRatio: 1.0 
             };
 
-            await html5QrCode.start(
-                { facingMode: "environment" },
-                config,
-                async (decodedText) => {
-                    if (loading || resultado) return;
-                    
-                    setLoading(true);
-                    
-                    try {
-                        // 1. PAUSAR LECTURAS (pero mantener el video vivo para fluidez)
-                        if (scannerRef.current) {
-                            scannerRef.current.pause(true);
-                        }
-
-                        const res = await api.post('/acceso', { codigo: decodedText });
-                        
-                        playSound('exito');
-                        if (navigator.vibrate) navigator.vibrate(100);
-
-                        setResultado({ 
-                            exito: true, 
-                            mensaje: res.data.mensaje, 
-                            tipo: res.data.tipo,
-                            nombre: res.data.usuario?.nombre || 'Usuario'
-                        });
-
-                        // 2. ESPERAR A QUE EL MENSAJE TERMINE PARA APAGAR LA CÁMARA
-                        setTimeout(async () => {
-                            setResultado(null);
-                            setLoading(false);
-                            
-                            // AHORA SÍ: Apagado total después del mensaje
-                            if (scannerRef.current) {
-                                await scannerRef.current.stop().catch(() => {});
-                                scannerRef.current = null;
-                            }
-                            setCameraActive(false);
-                        }, 4000);
-
-                    } catch (error) {
-                        playSound('error');
-                        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-
-                        setResultado({
-                            exito: false,
-                            mensaje: error.response?.data?.mensaje || 'Acceso Denegado'
-                        });
-
-                        setTimeout(async () => {
-                            setResultado(null);
-                            setLoading(false);
-                            if (scannerRef.current) {
-                                await scannerRef.current.stop().catch(() => {});
-                                scannerRef.current = null;
-                            }
-                            setCameraActive(false);
-                        }, 4000);
+            const onScanSuccess = async (decodedText) => {
+                if (loading || resultado) return;
+                
+                setLoading(true);
+                
+                try {
+                    // 1. PAUSAR LECTURAS
+                    if (scannerRef.current) {
+                        scannerRef.current.pause(true);
                     }
-                },
-                () => {}
-            );
+
+                    const res = await api.post('/acceso', { codigo: decodedText });
+                    
+                    playSound('exito');
+                    if (navigator.vibrate) navigator.vibrate(100);
+
+                    setResultado({ 
+                        exito: true, 
+                        mensaje: res.data.mensaje, 
+                        tipo: res.data.tipo,
+                        nombre: res.data.usuario?.nombre || 'Usuario'
+                    });
+
+                    // 2. ESPERAR Y REANUDAR ESCANEO (Kiosko continuo)
+                    setTimeout(async () => {
+                        setResultado(null);
+                        setLoading(false);
+                        
+                        if (scannerRef.current) {
+                            try { scannerRef.current.resume(); } catch(e) {}
+                        }
+                    }, 4000);
+
+                } catch (error) {
+                    playSound('error');
+                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+                    setResultado({
+                        exito: false,
+                        mensaje: error.response?.data?.mensaje || 'Acceso Denegado'
+                    });
+
+                    setTimeout(async () => {
+                        setResultado(null);
+                        setLoading(false);
+                        
+                        if (scannerRef.current) {
+                            try { scannerRef.current.resume(); } catch(e) {}
+                        }
+                    }, 4000);
+                }
+            };
+
+            // Intentar cámara trasera primero, si falla (ej. PC) usar cámara frontal
+            try {
+                await html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {});
+            } catch (envError) {
+                console.warn("Cámara trasera falló, intentando frontal...", envError);
+                await html5QrCode.start({ facingMode: "user" }, config, onScanSuccess, () => {});
+            }
 
             setCameraActive(true);
         } catch (err) {
             console.error("Error de cámara:", err);
+            alert("No se pudo iniciar la cámara. Verifica los permisos de tu navegador.");
         }
     };
 
