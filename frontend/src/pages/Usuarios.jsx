@@ -85,16 +85,16 @@ const Usuarios = () => {
                         placeholder="Buscar por nombre, ID o correo..."
                         value={busqueda}
                         onChange={e => setBusqueda(e.target.value)}
-                        style={{ paddingLeft: '3rem', borderRadius: '14px', height: '50px', background: 'white', border: '1.5px solid var(--border)' }}
+                        style={{ paddingLeft: '3rem', borderRadius: '14px', height: '50px', background: 'rgba(0,0,0,0.2)', color: 'var(--text-main)', border: '1.5px solid var(--border)' }}
                     />
                 </div>
             </div>
 
-            <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border)', background: 'white' }}>
+            <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--surface)' }}>
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
-                            <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid var(--border)' }}>
+                            <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1.5px solid var(--border)' }}>
                                 <th style={{ padding: '1.2rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Usuario</th>
                                 <th style={{ padding: '1.2rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Cédula</th>
                                 <th style={{ padding: '1.2rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }} className="hide-mobile">Correo</th>
@@ -105,13 +105,13 @@ const Usuarios = () => {
                         <tbody>
                             {usuariosFiltrados.length > 0 ? (
                                 usuariosFiltrados.map((user) => (
-                                    <tr key={user.id} className="table-row-hover" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                    <tr key={user.id} className="table-row-hover" style={{ borderBottom: '1px solid var(--border)' }}>
                                         <td style={{ padding: '1rem 1.2rem' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                                                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: '800', color: 'var(--primary-color)' }}>
+                                                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: '800', color: 'var(--primary-color)' }}>
                                                     {(user.nombre || '?').charAt(0).toUpperCase()}
                                                 </div>
-                                                <div style={{ fontWeight: '700', fontSize: '0.95rem' }}>{user.nombre || 'Sin Nombre'}</div>
+                                                <div style={{ fontWeight: '700', fontSize: '0.95rem', color: 'var(--text-main)' }}>{user.nombre || 'Sin Nombre'}</div>
                                             </div>
                                         </td>
                                         <td style={{ padding: '1.2rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500' }}>{user.cedula}</td>
@@ -142,10 +142,10 @@ const Usuarios = () => {
             </div>
 
             {modalAbierto && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1.5rem' }}>
-                    <div className="card shadow-lg" style={{ width: '100%', maxWidth: '440px', padding: '2.5rem', borderRadius: '28px', background: 'white', border: 'none' }}>
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1.5rem' }}>
+                    <div className="card shadow-lg" style={{ width: '100%', maxWidth: '440px', padding: '2.5rem', borderRadius: '28px', background: 'var(--surface)', border: '1px solid var(--border)', backdropFilter: 'blur(30px)' }}>
                         <div style={{ marginBottom: '1.8rem' }}>
-                            <h3 style={{ fontSize: '1.5rem', fontWeight: '900', letterSpacing: '-0.5px' }}>Editar Perfil</h3>
+                            <h3 style={{ fontSize: '1.5rem', fontWeight: '900', letterSpacing: '-0.5px', color: 'var(--text-main)' }}>Editar Perfil</h3>
                             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600' }}>Cédula: {editandoUser?.cedula}</p>
                         </div>
                         
@@ -176,7 +176,7 @@ const Usuarios = () => {
             )}
 
             <style>{`
-                .table-row-hover:hover { background-color: #f8fafc; }
+                .table-row-hover:hover { background-color: rgba(255,255,255,0.05); }
                 @media (max-width: 768px) {
                     .hide-mobile { display: none !important; }
                 }

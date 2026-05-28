@@ -114,11 +114,11 @@ const Dashboard = () => {
                         {accesosFiltrados.map((acc, i) => (
                             <div key={acc.id} className="animate-slide-up" style={{ animationDelay: `${Math.min(i * 50, 500)}ms`, background: 'var(--surface)', padding: '1.2rem', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--border)', transition: 'transform 0.2s', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.transform='scale(1.01)'} onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    <div style={{ width: '45px', height: '45px', borderRadius: '14px', background: acc.tipo === 'entrada' ? '#ecfdf5' : '#fef2f2', color: acc.tipo === 'entrada' ? '#059669' : '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>👤</div>
+                                    <div style={{ width: '45px', height: '45px', borderRadius: '14px', background: acc.tipo === 'entrada' ? 'var(--success-bg)' : 'var(--danger-bg)', color: acc.tipo === 'entrada' ? 'var(--success)' : 'var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>👤</div>
                                     <div>
                                         <div style={{ fontWeight: '900', fontSize: '1rem', color: 'var(--text-main)' }}>{acc.nombre || 'Usuario Desconocido'}</div>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
-                                            ID: {acc.cedula || '---'} • <span style={{ color: acc.tipo === 'entrada' ? '#059669' : '#dc2626' }}>{acc.tipo?.toUpperCase()}</span>
+                                            ID: {acc.cedula || '---'} • <span style={{ color: acc.tipo === 'entrada' ? 'var(--success)' : 'var(--danger)' }}>{acc.tipo?.toUpperCase()}</span>
                                         </div>
                                     </div>
                                 </div>
