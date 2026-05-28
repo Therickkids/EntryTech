@@ -11,6 +11,9 @@ const Usuarios = () => {
     const [modalAbierto, setModalAbierto] = useState(false);
     const [editandoUser, setEditandoUser] = useState(null);
     const [editForm, setEditForm] = useState({ nombre: '', correo: '', rol: '' });
+    
+    // Modal de solo lectura para ver todos los detalles (nombres largos)
+    const [viendoUser, setViendoUser] = useState(null);
 
     const fetchUsuarios = async () => {
         try {
@@ -107,7 +110,7 @@ const Usuarios = () => {
                         <tbody>
                             {usuariosFiltrados.length > 0 ? (
                                 usuariosFiltrados.map((user) => (
-                                    <tr key={user.id} className="table-row-hover" style={{ borderBottom: '1px solid var(--border)' }}>
+                                    <tr key={user.id} className="table-row-hover" onClick={() => setViendoUser(user)} style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
                                         {/* Nombre */}
                                         <td style={{ padding: '1rem 1.2rem', maxWidth: '220px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
@@ -130,12 +133,12 @@ const Usuarios = () => {
                                         {/* Acciones */}
                                         <td style={{ padding: '1rem 1.2rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
                                             <div style={{ display: 'inline-flex', gap: '0.5rem', alignItems: 'center' }}>
-                                                <button onClick={() => handleEditClick(user)} title="Editar" style={editBtnStyle}
+                                                <button onClick={(e) => { e.stopPropagation(); handleEditClick(user); }} title="Editar" style={editBtnStyle}
                                                     onMouseEnter={e => e.currentTarget.style.background='rgba(99,102,241,0.25)'}
                                                     onMouseLeave={e => e.currentTarget.style.background='rgba(99,102,241,0.1)'}>
                                                     <Pencil size={15} />
                                                 </button>
-                                                <button onClick={() => handleDelete(user.id)} title="Eliminar" style={deleteBtnStyle}
+                                                <button onClick={(e) => { e.stopPropagation(); handleDelete(user.id); }} title="Eliminar" style={deleteBtnStyle}
                                                     onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.25)'}
                                                     onMouseLeave={e => e.currentTarget.style.background='rgba(239,68,68,0.1)'}>
                                                     <Trash2 size={15} />
@@ -160,7 +163,7 @@ const Usuarios = () => {
             <div className="mobile-cards">
                 {usuariosFiltrados.length > 0 ? (
                     usuariosFiltrados.map((user) => (
-                        <div key={user.id} style={{
+                        <div key={user.id} onClick={() => setViendoUser(user)} style={{
                             background: 'var(--surface)',
                             border: '1px solid var(--border)',
                             borderRadius: '16px',
@@ -169,6 +172,7 @@ const Usuarios = () => {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.9rem',
+                            cursor: 'pointer'
                         }}>
                             {/* Avatar */}
                             <div style={avatarStyle}>{(user.nombre || '?').charAt(0).toUpperCase()}</div>
@@ -191,12 +195,12 @@ const Usuarios = () => {
 
                             {/* Buttons — always visible, side by side */}
                             <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
-                                <button onClick={() => handleEditClick(user)} title="Editar" style={editBtnStyle}
+                                <button onClick={(e) => { e.stopPropagation(); handleEditClick(user); }} title="Editar" style={editBtnStyle}
                                     onMouseEnter={e => e.currentTarget.style.background='rgba(99,102,241,0.25)'}
                                     onMouseLeave={e => e.currentTarget.style.background='rgba(99,102,241,0.1)'}>
                                     <Pencil size={15} />
                                 </button>
-                                <button onClick={() => handleDelete(user.id)} title="Eliminar" style={deleteBtnStyle}
+                                <button onClick={(e) => { e.stopPropagation(); handleDelete(user.id); }} title="Eliminar" style={deleteBtnStyle}
                                     onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.25)'}
                                     onMouseLeave={e => e.currentTarget.style.background='rgba(239,68,68,0.1)'}>
                                     <Trash2 size={15} />
@@ -241,6 +245,45 @@ const Usuarios = () => {
                         <div style={{ display: 'flex', gap: '1rem', marginTop: '2.5rem' }}>
                             <button onClick={handleSaveEdit} className="btn btn-primary" style={{ flex: 2 }}>Guardar</button>
                             <button onClick={() => setModalAbierto(false)} className="btn btn-secondary" style={{ flex: 1 }}>Salir</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Solo Vista (Ver Detalles) */}
+            {viendoUser && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1.5rem' }} onClick={() => setViendoUser(null)}>
+                    <div className="card shadow-lg" style={{ width: '100%', maxWidth: '440px', padding: '2.5rem', borderRadius: '28px', background: 'var(--surface)', border: '1px solid var(--border)', backdropFilter: 'blur(30px)' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', marginBottom: '1.8rem' }}>
+                            <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', fontWeight: '800', color: 'var(--primary-color)' }}>
+                                {(viendoUser.nombre || '?').charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <h3 style={{ fontSize: '1.3rem', fontWeight: '900', letterSpacing: '-0.5px', color: 'var(--text-main)', margin: 0, wordBreak: 'break-word' }}>
+                                    {viendoUser.nombre}
+                                </h3>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600', margin: '0.2rem 0 0 0' }}>Cédula: {viendoUser.cedula}</p>
+                            </div>
+                        </div>
+                        
+                        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.2rem', marginBottom: '1.5rem' }}>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <div style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--primary-color)', marginBottom: '0.3rem' }}>CORREO ELECTRÓNICO</div>
+                                <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', wordBreak: 'break-all', fontWeight: '600' }}>{viendoUser.correo}</div>
+                            </div>
+                            
+                            <div>
+                                <div style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--primary-color)', marginBottom: '0.3rem' }}>ROL DE ACCESO</div>
+                                <div>
+                                    <span className={`badge ${viendoUser.rol === 'admin' ? 'badge-entrada' : 'badge-salida'}`} style={{ fontSize: '0.75rem', borderRadius: '8px' }}>
+                                        {viendoUser.rol.toUpperCase()}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', marginTop: '1.5rem' }}>
+                            <button onClick={() => setViendoUser(null)} className="btn btn-secondary" style={{ width: '100%' }}>Cerrar</button>
                         </div>
                     </div>
                 </div>
