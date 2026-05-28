@@ -7,6 +7,7 @@ const Carnet = () => {
     const [usuario, setUsuario] = useState(null);
     const [uploadingFoto, setUploadingFoto] = useState(false);
     const [fotoMsg, setFotoMsg] = useState('');
+    const [qrUpdatedMsg, setQrUpdatedMsg] = useState(false);
     const fileInputRef = useRef(null);
 
     useEffect(() => {
@@ -23,6 +24,13 @@ const Carnet = () => {
                 const res = await api.get(`/usuarios/${parsedUser.id}/qr?t=${Date.now()}`);
                 setUsuario(prev => {
                     if (!prev) return prev;
+                    
+                    if (prev.carnet && prev.carnet.codigo_qr && prev.carnet.codigo_qr !== res.data.codigo_qr) {
+                        // El QR ha cambiado
+                        setQrUpdatedMsg(true);
+                        setTimeout(() => setQrUpdatedMsg(false), 4000);
+                    }
+
                     const updated = { ...prev, carnet: { ...prev.carnet, codigo_qr: res.data.codigo_qr } };
                     // Guardar en localStorage para que persista al recargar la página
                     localStorage.setItem('usuario', JSON.stringify(updated));
@@ -206,7 +214,20 @@ const Carnet = () => {
                     )}
 
                     {/* QR Code */}
-                    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', position: 'relative' }}>
+                        {qrUpdatedMsg && (
+                            <div className="animate-slide-up" style={{
+                                position: 'absolute', top: '0', zIndex: 10,
+                                background: 'linear-gradient(135deg, #10b981, #059669)',
+                                color: 'white', padding: '0.5rem 1.2rem', borderRadius: '30px',
+                                fontSize: '0.75rem', fontWeight: '800', letterSpacing: '0.05em',
+                                boxShadow: '0 10px 25px rgba(16,185,129,0.4)',
+                                display: 'flex', alignItems: 'center', gap: '0.4rem',
+                                border: '1px solid rgba(255,255,255,0.2)'
+                            }}>
+                                <ShieldCheck size={14} /> ¡QR RENOVADO POR SEGURIDAD!
+                            </div>
+                        )}
                         <div style={{
                             padding: '1.2rem',
                             background: '#ffffff',
