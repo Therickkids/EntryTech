@@ -368,6 +368,7 @@ tr:hover td { background: rgba(255,255,255,0.05); transform: scale(1.01); transi
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 /* Elementos interactivos al hacer clic (Ripple / Click Effect) */
 .click-effect:active { transform: scale(0.95); transition: transform 0.1s; }

@@ -1,14 +1,16 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import api from '../services/api';
-import { Camera, Wifi, ShieldCheck } from 'lucide-react';
+import { Camera, Wifi, ShieldCheck, RefreshCw } from 'lucide-react';
 
 const Carnet = () => {
     const [usuario, setUsuario] = useState(null);
     const [uploadingFoto, setUploadingFoto] = useState(false);
     const [fotoMsg, setFotoMsg] = useState('');
     const [qrUpdatedMsg, setQrUpdatedMsg] = useState(false);
+    const [syncStatus, setSyncStatus] = useState('idle'); // 'idle' | 'syncing' | 'ok' | 'error'
     const fileInputRef = useRef(null);
+    const lastKnownQR = useRef(null);
 
     useEffect(() => {
         const userData = localStorage.getItem('usuario');
@@ -16,35 +18,43 @@ const Carnet = () => {
         
         const parsedUser = JSON.parse(userData);
         setUsuario(parsedUser);
+        lastKnownQR.current = parsedUser.carnet?.codigo_qr || null;
 
         // Función para sincronizar el QR dinámico desde el servidor
         const fetchDynamicQR = async () => {
+            setSyncStatus('syncing');
             try {
-                // Agregar timestamp (?t=...) para evitar que el navegador guarde el resultado en caché
                 const res = await api.get(`/usuarios/${parsedUser.id}/qr?t=${Date.now()}`);
+                const newQR = res.data.codigo_qr;
+                
+                setSyncStatus('ok');
+                setTimeout(() => setSyncStatus('idle'), 1500);
+
+                if (lastKnownQR.current && lastKnownQR.current !== newQR) {
+                    // ¡El QR realmente cambió!
+                    setQrUpdatedMsg(true);
+                    setTimeout(() => setQrUpdatedMsg(false), 5000);
+                }
+
+                lastKnownQR.current = newQR;
+
                 setUsuario(prev => {
                     if (!prev) return prev;
-                    
-                    if (prev.carnet && prev.carnet.codigo_qr && prev.carnet.codigo_qr !== res.data.codigo_qr) {
-                        // El QR ha cambiado
-                        setQrUpdatedMsg(true);
-                        setTimeout(() => setQrUpdatedMsg(false), 4000);
-                    }
-
-                    const updated = { ...prev, carnet: { ...prev.carnet, codigo_qr: res.data.codigo_qr } };
-                    // Guardar en localStorage para que persista al recargar la página
+                    const updated = { ...prev, carnet: { ...prev.carnet, codigo_qr: newQR } };
                     localStorage.setItem('usuario', JSON.stringify(updated));
                     return updated;
                 });
             } catch (err) {
                 console.error("Error al refrescar el QR dinámico:", err);
+                setSyncStatus('error');
+                setTimeout(() => setSyncStatus('idle'), 2000);
             }
         };
 
         // Sincronizar inmediatamente al abrir
         fetchDynamicQR();
 
-        // Refrescar automáticamente cada 3 segundos para que el cambio sea casi instantáneo al escanear
+        // Refrescar automáticamente cada 3 segundos
         const intervalId = setInterval(fetchDynamicQR, 3000);
         return () => clearInterval(intervalId);
     }, []);
@@ -242,6 +252,20 @@ const Carnet = () => {
                             Muestra este código en el lector de acceso.<br/>
                             <span style={{ color: 'var(--success)', fontWeight: '700', fontSize: '0.7rem' }}>● Código Dinámico de Un Solo Uso</span>
                         </p>
+                        {/* Indicador de sincronización en vivo */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginTop: '0.5rem' }}>
+                            <RefreshCw size={12} style={{ 
+                                color: syncStatus === 'syncing' ? 'var(--primary-color)' : syncStatus === 'ok' ? 'var(--success)' : syncStatus === 'error' ? 'var(--danger)' : 'var(--text-muted)',
+                                animation: syncStatus === 'syncing' ? 'spin 1s linear infinite' : 'none',
+                                transition: 'color 0.3s'
+                            }} />
+                            <span style={{ 
+                                fontSize: '0.65rem', fontWeight: '700',
+                                color: syncStatus === 'syncing' ? 'var(--primary-color)' : syncStatus === 'ok' ? 'var(--success)' : syncStatus === 'error' ? 'var(--danger)' : 'var(--text-muted)'
+                            }}>
+                                {syncStatus === 'syncing' ? 'Sincronizando...' : syncStatus === 'ok' ? 'Conectado al servidor' : syncStatus === 'error' ? 'Error de conexión' : 'Monitoreo activo'}
+                            </span>
+                        </div>
                     </div>
 
                     {/* Footer */}
