@@ -9,6 +9,7 @@ const Carnet = () => {
     const [fotoMsg, setFotoMsg] = useState('');
     const [qrUpdatedMsg, setQrUpdatedMsg] = useState(false);
     const [syncStatus, setSyncStatus] = useState('idle'); // 'idle' | 'syncing' | 'ok' | 'error'
+    const [syncErrorMsg, setSyncErrorMsg] = useState('');
     const fileInputRef = useRef(null);
     const lastKnownQR = useRef(null);
 
@@ -27,6 +28,7 @@ const Carnet = () => {
         const fetchDynamicQR = async () => {
             if (!isMounted) return;
             setSyncStatus('syncing');
+            setSyncErrorMsg('');
             try {
                 const res = await api.get(`/usuarios/${parsedUser.id}/qr?t=${Date.now()}`);
                 const newQR = res.data.codigo_qr;
@@ -50,7 +52,10 @@ const Carnet = () => {
                 }
             } catch (err) {
                 console.error("Error al refrescar el QR dinámico:", err);
-                if (isMounted) setSyncStatus('error');
+                if (isMounted) {
+                    setSyncStatus('error');
+                    setSyncErrorMsg(err.response?.data?.mensaje || err.message || 'Error desconocido');
+                }
             } finally {
                 if (isMounted) {
                     // Volver a llamar después de 3 segundos, solo si ha terminado la petición anterior
@@ -262,18 +267,25 @@ const Carnet = () => {
                             <span style={{ color: 'var(--success)', fontWeight: '700', fontSize: '0.7rem' }}>● Código Dinámico de Un Solo Uso</span>
                         </p>
                         {/* Indicador de sincronización en vivo */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginTop: '0.5rem' }}>
-                            <RefreshCw size={12} style={{ 
-                                color: syncStatus === 'syncing' ? 'var(--primary-color)' : syncStatus === 'ok' ? 'var(--success)' : syncStatus === 'error' ? 'var(--danger)' : 'var(--text-muted)',
-                                animation: syncStatus === 'syncing' ? 'spin 1s linear infinite' : 'none',
-                                transition: 'color 0.3s'
-                            }} />
-                            <span style={{ 
-                                fontSize: '0.65rem', fontWeight: '700',
-                                color: syncStatus === 'syncing' ? 'var(--primary-color)' : syncStatus === 'ok' ? 'var(--success)' : syncStatus === 'error' ? 'var(--danger)' : 'var(--text-muted)'
-                            }}>
-                                {syncStatus === 'syncing' ? 'Sincronizando...' : syncStatus === 'ok' ? 'Conectado al servidor' : syncStatus === 'error' ? 'Error de conexión' : 'Monitoreo activo'}
-                            </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginTop: '0.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <RefreshCw size={12} style={{ 
+                                    color: syncStatus === 'syncing' ? 'var(--primary-color)' : syncStatus === 'ok' ? 'var(--success)' : syncStatus === 'error' ? 'var(--danger)' : 'var(--text-muted)',
+                                    animation: syncStatus === 'syncing' ? 'spin 1s linear infinite' : 'none',
+                                    transition: 'color 0.3s'
+                                }} />
+                                <span style={{ 
+                                    fontSize: '0.65rem', fontWeight: '700',
+                                    color: syncStatus === 'syncing' ? 'var(--primary-color)' : syncStatus === 'ok' ? 'var(--success)' : syncStatus === 'error' ? 'var(--danger)' : 'var(--text-muted)'
+                                }}>
+                                    {syncStatus === 'syncing' ? 'Sincronizando...' : syncStatus === 'ok' ? 'Conectado al servidor' : syncStatus === 'error' ? 'Error de conexión' : 'Monitoreo activo'}
+                                </span>
+                            </div>
+                            {syncStatus === 'error' && syncErrorMsg && (
+                                <span style={{ fontSize: '0.6rem', color: 'var(--danger)', fontWeight: '600', marginTop: '-0.2rem' }}>
+                                    {syncErrorMsg}
+                                </span>
+                            )}
                         </div>
                     </div>
 
