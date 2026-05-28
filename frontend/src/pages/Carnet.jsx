@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import api from '../services/api';
+import { Camera, Wifi, ShieldCheck } from 'lucide-react';
 
 const Carnet = () => {
     const [usuario, setUsuario] = useState(null);
@@ -141,12 +142,12 @@ const Carnet = () => {
                                     background: 'rgba(0,0,0,0.35)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     opacity: 0, transition: 'opacity 0.2s', borderRadius: '50%',
-                                    fontSize: '1.5rem'
+                                    color: 'white'
                                 }}
                                 onMouseEnter={e => e.currentTarget.style.opacity = '1'}
                                 onMouseLeave={e => e.currentTarget.style.opacity = '0'}
                                 >
-                                    📷
+                                    <Camera size={24} />
                                 </div>
                             </div>
                             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFotoChange} />
@@ -222,10 +223,10 @@ const Carnet = () => {
                         borderTop: '1px solid var(--border)',
                         display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                     }}>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: '600', letterSpacing: '0.08em' }}>
-                            SISTEMA DE ACCESO — ENTRYTECH
-                        </span>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>🔒 Seguro</span>
+                        <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: '600', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                             <ShieldCheck size={12} /> SISTEMA DE ACCESO — ENTRYTECH
+                        </div>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><ShieldCheck size={12} /> Seguro</span>
                     </div>
                 </div>
 
@@ -234,9 +235,9 @@ const Carnet = () => {
                     onClick={() => fileInputRef.current?.click()}
                     className="btn btn-secondary btn-block"
                     disabled={uploadingFoto}
-                    style={{ marginBottom: '1rem', padding: '0.9rem' }}
+                    style={{ marginBottom: '1rem', padding: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                 >
-                    {uploadingFoto ? '⏳ Subiendo...' : '📷 Cambiar Foto de Perfil'}
+                    <Camera size={18} /> {uploadingFoto ? 'Subiendo...' : 'Cambiar Foto de Perfil'}
                 </button>
 
                 {/* Botón NFC */}
@@ -249,15 +250,15 @@ const Carnet = () => {
                         try {
                             const ndef = new NDEFReader();
                             await ndef.write({ records: [{ recordType: "text", data: usuario.carnet.codigo_nfc }] });
-                            alert("¡Transmisión NFC exitosa!");
+                            alert('¡Transmisión NFC exitosa!');
                         } catch (error) {
                             alert(`Error de NFC: ${error.message}`);
                         }
                     }}
                     className="btn btn-primary btn-block"
-                    style={{ padding: '0.9rem', fontSize: '1rem' }}
+                    style={{ padding: '0.9rem', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                 >
-                    📡 Transmitir por NFC
+                    <Wifi size={18} /> Transmitir por NFC
                 </button>
             </div>
         </div>

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Users, QrCode, BookOpen, Menu, X } from 'lucide-react';
 
 const Navbar = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [isOpen, setIsOpen] = useState(false);
-
     const [showConfirmLogout, setShowConfirmLogout] = useState(false);
 
     const handleLogout = () => {
@@ -20,14 +20,14 @@ const Navbar = () => {
     const toggleSidebar = () => setIsOpen(!isOpen);
 
     const navLinks = [
-        { path: '/simulador', label: '📲 Simulador' },
-        { path: '/manual', label: '📖 Manual de Usuario' },
+        { path: '/simulador', label: 'Simulador', icon: <QrCode size={18} /> },
+        { path: '/manual', label: 'Manual de Usuario', icon: <BookOpen size={18} /> },
     ];
 
     if (usuario.rol === 'admin') {
         navLinks.unshift(
-            { path: '/dashboard', label: '📊 Dashboard' },
-            { path: '/usuarios', label: '👥 Gestión de Usuarios' }
+            { path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
+            { path: '/usuarios', label: 'Gestión de Usuarios', icon: <Users size={18} /> }
         );
     }
 
@@ -36,8 +36,8 @@ const Navbar = () => {
             <nav className="navbar" style={{ padding: '0.6rem 1rem', minHeight: '60px' }}>
                 {/* IZQUIERDA: Menú y Marca */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <button onClick={toggleSidebar} className="menu-toggle" style={{ fontSize: '1.25rem', width: '36px', height: '36px' }}>
-                        ☰
+                    <button onClick={toggleSidebar} className="menu-toggle" style={{ fontSize: '1.25rem', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {isOpen ? <X size={20} /> : <Menu size={20} />}
                     </button>
                     <div className="navbar-brand" style={{ fontSize: '1rem', fontWeight: '800' }}>EntryTech</div>
                 </div>
@@ -91,9 +91,10 @@ const Navbar = () => {
                             key={link.path}
                             to={link.path}
                             className={`sidebar-link animate-slide-up ${location.pathname === link.path ? 'active' : ''}`}
-                            style={{ animationDelay: `${idx * 60}ms` }}
+                            style={{ animationDelay: `${idx * 60}ms`, display: 'flex', alignItems: 'center', gap: '0.75rem' }}
                             onClick={toggleSidebar}
                         >
+                            {link.icon}
                             {link.label}
                         </Link>
                     ))}

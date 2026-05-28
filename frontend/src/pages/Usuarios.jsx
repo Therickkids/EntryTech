@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import api from '../services/api';
+import { Search, Pencil, Trash2 } from 'lucide-react';
 
 const Usuarios = () => {
     const [usuarios, setUsuarios] = useState([]);
@@ -27,16 +28,13 @@ const Usuarios = () => {
         fetchUsuarios();
     }, []);
 
-    // Motor de búsqueda robusto (Normaliza tildes y tipos de datos)
     const usuariosFiltrados = useMemo(() => {
         const q = busqueda.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         if (!q) return usuarios;
-
         return usuarios.filter(u => {
             const nombre = (u.nombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             const correo = (u.correo || '').toLowerCase();
             const cedula = (u.cedula || '').toString().toLowerCase();
-            
             return nombre.includes(q) || correo.includes(q) || cedula.includes(q);
         });
     }, [usuarios, busqueda]);
@@ -78,7 +76,9 @@ const Usuarios = () => {
                 </div>
                 
                 <div style={{ position: 'relative', flex: '1', maxWidth: '400px', minWidth: '280px' }}>
-                    <div style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>🔍</div>
+                    <div style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.4, pointerEvents: 'none', display: 'flex' }}>
+                        <Search size={16} />
+                    </div>
                     <input
                         type="text"
                         className="form-control"
@@ -92,39 +92,50 @@ const Usuarios = () => {
 
             <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--surface)' }}>
                 <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                        <colgroup>
+                            <col style={{ width: '35%' }} />
+                            <col style={{ width: '18%' }} />
+                            <col style={{ width: '30%' }} className="hide-mobile" />
+                            <col style={{ width: '10%' }} />
+                            <col style={{ width: '7%' }} />
+                        </colgroup>
                         <thead>
                             <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1.5px solid var(--border)' }}>
                                 <th style={{ padding: '1.2rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Usuario</th>
                                 <th style={{ padding: '1.2rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Cédula</th>
                                 <th style={{ padding: '1.2rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }} className="hide-mobile">Correo</th>
                                 <th style={{ padding: '1.2rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Rol</th>
-                                <th style={{ padding: '1.2rem', textAlign: 'right', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Acciones</th>
+                                <th style={{ padding: '1.2rem', textAlign: 'right', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}></th>
                             </tr>
                         </thead>
                         <tbody>
                             {usuariosFiltrados.length > 0 ? (
                                 usuariosFiltrados.map((user) => (
                                     <tr key={user.id} className="table-row-hover" style={{ borderBottom: '1px solid var(--border)' }}>
-                                        <td style={{ padding: '1rem 1.2rem' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                                                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: '800', color: 'var(--primary-color)' }}>
+                                        <td style={{ padding: '1rem 1.2rem', overflow: 'hidden' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', minWidth: 0 }}>
+                                                <div style={{ width: '36px', height: '36px', minWidth: '36px', borderRadius: '10px', background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: '800', color: 'var(--primary-color)' }}>
                                                     {(user.nombre || '?').charAt(0).toUpperCase()}
                                                 </div>
-                                                <div style={{ fontWeight: '700', fontSize: '0.95rem', color: 'var(--text-main)' }}>{user.nombre || 'Sin Nombre'}</div>
+                                                <div style={{ fontWeight: '700', fontSize: '0.95rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.nombre || 'Sin Nombre'}</div>
                                             </div>
                                         </td>
-                                        <td style={{ padding: '1.2rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500' }}>{user.cedula}</td>
-                                        <td style={{ padding: '1.2rem', fontSize: '0.9rem', color: 'var(--text-muted)' }} className="hide-mobile">{user.correo}</td>
+                                        <td style={{ padding: '1.2rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500', whiteSpace: 'nowrap' }}>{user.cedula}</td>
+                                        <td style={{ padding: '1.2rem', fontSize: '0.9rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} className="hide-mobile">{user.correo}</td>
                                         <td style={{ padding: '1.2rem' }}>
-                                            <span className={`badge ${user.rol === 'admin' ? 'badge-entrada' : 'badge-salida'}`} style={{ fontSize: '0.65rem', borderRadius: '8px' }}>
+                                            <span className={`badge ${user.rol === 'admin' ? 'badge-entrada' : 'badge-salida'}`} style={{ fontSize: '0.65rem', borderRadius: '8px', whiteSpace: 'nowrap' }}>
                                                 {user.rol.toUpperCase()}
                                             </span>
                                         </td>
                                         <td style={{ padding: '1.2rem', textAlign: 'right' }}>
-                                            <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'flex-end' }}>
-                                                <button onClick={() => handleEditClick(user)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.7 }}>✏️</button>
-                                                <button onClick={() => handleDelete(user.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.7 }}>🗑️</button>
+                                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                                <button onClick={() => handleEditClick(user)} title="Editar" style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: '8px', cursor: 'pointer', padding: '0.4rem', display: 'flex', alignItems: 'center', color: 'var(--primary-color)', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background='rgba(99,102,241,0.25)'} onMouseLeave={e => e.currentTarget.style.background='rgba(99,102,241,0.1)'}>
+                                                    <Pencil size={15} />
+                                                </button>
+                                                <button onClick={() => handleDelete(user.id)} title="Eliminar" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', cursor: 'pointer', padding: '0.4rem', display: 'flex', alignItems: 'center', color: '#ef4444', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.25)'} onMouseLeave={e => e.currentTarget.style.background='rgba(239,68,68,0.1)'}>
+                                                    <Trash2 size={15} />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>

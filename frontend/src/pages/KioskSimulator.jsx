@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Html5Qrcode, Html5QrcodeScanner } from 'html5-qrcode';
 import api from '../services/api';
+import { Camera, Square, Wifi, Zap } from 'lucide-react';
 
 const KioskSimulator = () => {
     const [resultado, setResultado] = useState(null);
@@ -198,11 +199,11 @@ const KioskSimulator = () => {
                 {/* Overlays de Estado */}
                 {!cameraActive && !resultado && (
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', color: 'white', zIndex: 10 }}>
-                        <div style={{ fontSize: '4rem', marginBottom: '1rem', filter: 'drop-shadow(0 0 20px rgba(99,102,241,0.8))' }}>📷</div>
+                        <div style={{ marginBottom: '1rem', filter: 'drop-shadow(0 0 20px rgba(99,102,241,0.8))', color: 'rgba(99,102,241,0.9)' }}><Camera size={64} /></div>
                         <h3 style={{ marginBottom: '0.5rem', fontFamily: 'var(--font-heading)', letterSpacing: '-0.03em' }}>Sistema en Espera</h3>
                         <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>Apunta la cámara al código QR</p>
-                        <button onClick={handleStartCamera} className="btn btn-primary click-effect" style={{ padding: '1rem 2.5rem', borderRadius: '50px', fontSize: '1rem', fontWeight: '700', boxShadow: '0 0 30px rgba(99,102,241,0.5)' }}>
-                            ⚡ Activar Escáner
+                        <button onClick={handleStartCamera} className="btn btn-primary click-effect" style={{ padding: '1rem 2.5rem', borderRadius: '50px', fontSize: '1rem', fontWeight: '700', boxShadow: '0 0 30px rgba(99,102,241,0.5)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Zap size={18} /> Activar Escáner
                         </button>
                     </div>
                 )}
@@ -254,12 +255,12 @@ const KioskSimulator = () => {
             {/* Controles Inferiores */}
             <div className="animate-slide-up delay-200" style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem' }}>
                 {cameraActive && (
-                    <button onClick={handleStopCamera} className="btn btn-secondary click-effect" style={{ flex: 1, padding: '1rem', borderRadius: '20px', fontWeight: '700' }}>
-                        ⏹ Detener Sistema
+                <button onClick={handleStopCamera} className="btn btn-secondary click-effect" style={{ flex: 1, padding: '1rem', borderRadius: '20px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                        <Square size={16} /> Detener Sistema
                     </button>
                 )}
-                <button onClick={() => alert('NFC se activa al acercar tarjeta en dispositivos compatibles')} className="btn btn-primary click-effect" style={{ flex: 1, padding: '1rem', borderRadius: '20px', fontWeight: '700', background: 'linear-gradient(135deg, var(--secondary), #06b6d4)' }}>
-                    📡 Modo NFC
+                <button onClick={() => alert('NFC se activa al acercar tarjeta en dispositivos compatibles')} className="btn btn-primary click-effect" style={{ flex: 1, padding: '1rem', borderRadius: '20px', fontWeight: '700', background: 'linear-gradient(135deg, var(--secondary), #06b6d4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                    <Wifi size={18} /> Modo NFC
                 </button>
             </div>
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import api from '../services/api';
+import { TrendingUp, Users, ClipboardList, Clock, Download, Search, LogIn, LogOut } from 'lucide-react';
 
 const Dashboard = () => {
     const [accesos, setAccesos] = useState([]);
@@ -70,21 +71,21 @@ const Dashboard = () => {
                     <h2 className="animate-fade-in" style={{ fontSize: '1.8rem', fontWeight: '900', letterSpacing: '-1.2px' }}>Dashboard</h2>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>Monitor de accesos en tiempo real</p>
                 </div>
-                <button onClick={handleExportCSV} className="btn btn-primary animate-fade-in click-effect" style={{ padding: '0.7rem 1.5rem', borderRadius: '14px' }}>
-                    ⬇ Exportar CSV
+                <button onClick={handleExportCSV} className="btn btn-primary animate-fade-in click-effect" style={{ padding: '0.7rem 1.5rem', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Download size={16} /> Exportar CSV
                 </button>
             </div>
 
             {/* Stats Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '2.5rem' }}>
                 {[
-                    { label: 'Entradas Hoy', val: stats.entradasHoy, icon: '🚀', bg: '#4f46e5' },
-                    { label: 'Personal Activo', val: stats.empleadosUnicos, icon: '👥', bg: '#0ea5e9' },
-                    { label: 'Total Logs', val: accesos.length, icon: '📋', bg: '#10b981' },
-                    { label: 'Último', val: stats.ultimo?.nombre?.split(' ')[0] || '---', icon: '⏱️', bg: '#f59e0b' }
+                    { label: 'Entradas Hoy', val: stats.entradasHoy, icon: <TrendingUp size={20} />, bg: '#4f46e5' },
+                    { label: 'Personal Activo', val: stats.empleadosUnicos, icon: <Users size={20} />, bg: '#0ea5e9' },
+                    { label: 'Total Logs', val: accesos.length, icon: <ClipboardList size={20} />, bg: '#10b981' },
+                    { label: 'Último', val: stats.ultimo?.nombre?.split(' ')[0] || '---', icon: <Clock size={20} />, bg: '#f59e0b' }
                 ].map((s, i) => (
                     <div key={i} className={`card animate-slide-up delay-${(i % 4) * 100}`} style={{ padding: '1.25rem', borderRadius: '24px', border: '1px solid var(--border)', cursor: 'default', transition: 'transform 0.3s, box-shadow 0.3s' }} onMouseEnter={e => { e.currentTarget.style.transform='translateY(-4px)'; e.currentTarget.style.boxShadow='var(--shadow-glow)'; }} onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow=''; }}>
-                        <div style={{ background: `${s.bg}15`, width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', marginBottom: '1rem' }}>{s.icon}</div>
+                        <div style={{ background: `${s.bg}15`, width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.bg, marginBottom: '1rem' }}>{s.icon}</div>
                         <div style={{ fontSize: '1.5rem', fontWeight: '900' }}>{s.val}</div>
                         <div style={{ fontSize: '0.65rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{s.label}</div>
                     </div>
@@ -93,7 +94,7 @@ const Dashboard = () => {
 
             {/* Buscador de "Fuerza Bruta" */}
             <div className="animate-fade-in delay-200" style={{ position: 'relative', maxWidth: '600px', margin: '0 auto 2.5rem auto' }}>
-                <span style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>🔍</span>
+                <span style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.4, display: 'flex', pointerEvents: 'none' }}><Search size={16} /></span>
                 <input
                     type="text"
                     className="form-control"
@@ -114,7 +115,9 @@ const Dashboard = () => {
                         {accesosFiltrados.map((acc, i) => (
                             <div key={acc.id} className="animate-slide-up" style={{ animationDelay: `${Math.min(i * 50, 500)}ms`, background: 'var(--surface)', padding: '1.2rem', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--border)', transition: 'transform 0.2s', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.transform='scale(1.01)'} onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    <div style={{ width: '45px', height: '45px', borderRadius: '14px', background: acc.tipo === 'entrada' ? 'var(--success-bg)' : 'var(--danger-bg)', color: acc.tipo === 'entrada' ? 'var(--success)' : 'var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>👤</div>
+                                    <div style={{ width: '45px', height: '45px', borderRadius: '14px', background: acc.tipo === 'entrada' ? 'var(--success-bg)' : 'var(--danger-bg)', color: acc.tipo === 'entrada' ? 'var(--success)' : 'var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        {acc.tipo === 'entrada' ? <LogIn size={20} /> : <LogOut size={20} />}
+                                    </div>
                                     <div>
                                         <div style={{ fontWeight: '900', fontSize: '1rem', color: 'var(--text-main)' }}>{acc.nombre || 'Usuario Desconocido'}</div>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
