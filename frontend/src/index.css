@@ -303,7 +303,7 @@ a { text-decoration: none; color: inherit; }
 
 /* --- LOGOUT PREMIUM --- */
 .btn-logout-premium {
-  width: 100%; display: flex; align-items: center; gap: 0.75rem; padding: 1rem;
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 1rem;
   border-radius: 16px; border: 1px solid rgba(239,68,68,0.2); background: rgba(239,68,68,0.05);
   color: var(--danger); font-weight: 800; cursor: pointer; transition: all 0.3s;
 }
@@ -312,7 +312,23 @@ a { text-decoration: none; color: inherit; }
 .logout-confirm-box {
   background: rgba(20,10,10,0.8); padding: 1.25rem; border-radius: 20px;
   border: 1px solid rgba(239,68,68,0.3); animation: slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.05);
+  text-align: center;
 }
+
+.btn-logout-confirm {
+  flex: 1; padding: 0.7rem; border-radius: 12px; border: none;
+  background: var(--danger); color: white; font-weight: 700; cursor: pointer;
+  transition: all 0.2s; box-shadow: 0 4px 10px rgba(239,68,68,0.3);
+}
+.btn-logout-confirm:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239,68,68,0.4); }
+
+.btn-logout-cancel {
+  flex: 1; padding: 0.7rem; border-radius: 12px; border: 1px solid var(--border);
+  background: rgba(255,255,255,0.05); color: var(--text-main); font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-logout-cancel:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
 
 @keyframes slideInUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 

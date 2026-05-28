@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, QrCode, BookOpen, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, QrCode, BookOpen, Menu, X, LogOut, AlertTriangle } from 'lucide-react';
 
 const Navbar = () => {
     const navigate = useNavigate();
@@ -105,13 +105,17 @@ const Navbar = () => {
                                 onClick={() => setShowConfirmLogout(true)}
                                 className="btn-logout-premium"
                             >
+                                <LogOut size={18} />
                                 <span>Cerrar Sesión</span>
                             </button>
                         ) : (
                             <div className="logout-confirm-box">
-                                <p style={{ fontSize: '0.75rem', fontWeight: '800', marginBottom: '0.8rem', color: '#f87171' }}>
-                                    ¿Seguro que quieres salir?
-                                </p>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginBottom: '0.8rem', color: '#f87171' }}>
+                                    <AlertTriangle size={16} />
+                                    <p style={{ fontSize: '0.75rem', fontWeight: '800', margin: 0 }}>
+                                        ¿Seguro que quieres salir?
+                                    </p>
+                                </div>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <button onClick={handleLogout} className="btn-logout-confirm">Sí, salir</button>
                                     <button onClick={() => setShowConfirmLogout(false)} className="btn-logout-cancel">No</button>
