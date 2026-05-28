@@ -200,11 +200,14 @@ const Carnet = () => {
                     {/* QR Code */}
                     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
                         <div style={{
-                            padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '16px',
-                            boxShadow: '0 0 30px rgba(99,102,241,0.2)',
-                            border: '1px solid rgba(99,102,241,0.2)'
+                            padding: '1.2rem',
+                            background: '#ffffff',
+                            borderRadius: '16px',
+                            boxShadow: '0 0 30px rgba(99,102,241,0.3)',
+                            border: '1px solid rgba(99,102,241,0.2)',
+                            display: 'inline-block'
                         }}>
-                            <QRCodeSVG value={usuario.carnet.codigo_qr} size={190} bgColor="transparent" fgColor="#ffffff" />
+                            <QRCodeSVG value={usuario.carnet.codigo_qr} size={190} bgColor="#ffffff" fgColor="#0f0f1a" level="H" />
                         </div>
                         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', margin: 0 }}>
                             Muestra este código en el lector de acceso.<br/>
