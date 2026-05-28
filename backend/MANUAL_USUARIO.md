@@ -36,7 +36,46 @@ Para poner en marcha el backend, siga estos pasos:
 > - **DB_NAME:** `postgres`
 
 3.  **Preparación de la Base de Datos:**
-    Ejecute el script `database.sql` ubicado en la raíz del proyecto para crear las tablas y relaciones necesarias.
+    Ejecute el siguiente script SQL en el SQL Editor de Supabase (o en su base de datos PostgreSQL local) para crear las tablas, las relaciones y asignar los permisos iniciales:
+
+    ```sql
+    -- LIMPIEZA INICIAL (Para evitar conflictos de nombres)
+    DROP TABLE IF EXISTS accesos;
+    DROP TABLE IF EXISTS carnet;
+    DROP TABLE IF EXISTS usuarios;
+
+    -- 1. TABLA DE USUARIOS
+    CREATE TABLE usuarios (
+        id SERIAL PRIMARY KEY,
+        cedula VARCHAR(20) UNIQUE NOT NULL,
+        nombre VARCHAR(100) NOT NULL,
+        correo VARCHAR(100) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        rol VARCHAR(50) DEFAULT 'usuario' CHECK (rol IN ('admin', 'usuario')),
+        foto_url TEXT,
+        creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- 2. TABLA DE CARNETS
+    CREATE TABLE carnet (
+        id SERIAL PRIMARY KEY,
+        usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+        codigo_nfc VARCHAR(255) UNIQUE NOT NULL,
+        codigo_qr VARCHAR(255) UNIQUE NOT NULL,
+        emitido_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- 3. TABLA DE ACCESOS
+    CREATE TABLE accesos (
+        id SERIAL PRIMARY KEY,
+        usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+        tipo VARCHAR(10) CHECK (tipo IN ('entrada', 'salida')),
+        fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- 4. PERMISOS
+    UPDATE usuarios SET rol = 'admin' WHERE correo = 'manrriquejulian163@gmail.com';
+    ```
 
 ## 3. Ejecución del Servidor
 - **Modo Desarrollo:** `npm run dev` (utiliza nodemon para reinicio automático).
