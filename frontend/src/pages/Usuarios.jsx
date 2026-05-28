@@ -69,13 +69,14 @@ const Usuarios = () => {
 
     return (
         <div className="main-content" style={{ paddingBottom: '3rem' }}>
+            {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1.5rem', flexWrap: 'wrap' }}>
                 <div>
                     <h2 style={{ fontSize: '1.8rem', fontWeight: '900', letterSpacing: '-1.2px', marginBottom: '0.2rem' }}>Personal</h2>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>{usuarios.length} registros activos</p>
                 </div>
                 
-                <div style={{ position: 'relative', flex: '1', maxWidth: '400px', minWidth: '280px' }}>
+                <div style={{ position: 'relative', flex: '1', maxWidth: '400px', minWidth: '260px' }}>
                     <div style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.4, pointerEvents: 'none', display: 'flex' }}>
                         <Search size={16} />
                     </div>
@@ -90,50 +91,53 @@ const Usuarios = () => {
                 </div>
             </div>
 
-            <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--surface)' }}>
+            {/* ── DESKTOP TABLE ── */}
+            <div className="card desktop-table" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--surface)' }}>
                 <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-                        <colgroup>
-                            <col style={{ width: '35%' }} />
-                            <col style={{ width: '18%' }} />
-                            <col style={{ width: '30%' }} className="hide-mobile" />
-                            <col style={{ width: '10%' }} />
-                            <col style={{ width: '7%' }} />
-                        </colgroup>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'auto' }}>
                         <thead>
                             <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1.5px solid var(--border)' }}>
-                                <th style={{ padding: '1.2rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Usuario</th>
-                                <th style={{ padding: '1.2rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Cédula</th>
-                                <th style={{ padding: '1.2rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }} className="hide-mobile">Correo</th>
-                                <th style={{ padding: '1.2rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Rol</th>
-                                <th style={{ padding: '1.2rem', textAlign: 'right', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}></th>
+                                <th style={thStyle}>Usuario</th>
+                                <th style={thStyle}>Cédula</th>
+                                <th style={thStyle}>Correo</th>
+                                <th style={{ ...thStyle, textAlign: 'center' }}>Rol</th>
+                                <th style={{ ...thStyle, textAlign: 'right' }}>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {usuariosFiltrados.length > 0 ? (
                                 usuariosFiltrados.map((user) => (
                                     <tr key={user.id} className="table-row-hover" style={{ borderBottom: '1px solid var(--border)' }}>
-                                        <td style={{ padding: '1rem 1.2rem', overflow: 'hidden' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', minWidth: 0 }}>
-                                                <div style={{ width: '36px', height: '36px', minWidth: '36px', borderRadius: '10px', background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: '800', color: 'var(--primary-color)' }}>
-                                                    {(user.nombre || '?').charAt(0).toUpperCase()}
-                                                </div>
-                                                <div style={{ fontWeight: '700', fontSize: '0.95rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.nombre || 'Sin Nombre'}</div>
+                                        {/* Nombre */}
+                                        <td style={{ padding: '1rem 1.2rem', maxWidth: '220px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                                                <div style={avatarStyle}>{(user.nombre || '?').charAt(0).toUpperCase()}</div>
+                                                <span style={{ fontWeight: '700', fontSize: '0.9rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px', display: 'block' }}>
+                                                    {user.nombre || 'Sin Nombre'}
+                                                </span>
                                             </div>
                                         </td>
-                                        <td style={{ padding: '1.2rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500', whiteSpace: 'nowrap' }}>{user.cedula}</td>
-                                        <td style={{ padding: '1.2rem', fontSize: '0.9rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} className="hide-mobile">{user.correo}</td>
-                                        <td style={{ padding: '1.2rem' }}>
-                                            <span className={`badge ${user.rol === 'admin' ? 'badge-entrada' : 'badge-salida'}`} style={{ fontSize: '0.65rem', borderRadius: '8px', whiteSpace: 'nowrap' }}>
+                                        {/* Cédula */}
+                                        <td style={{ padding: '1rem 1.2rem', fontSize: '0.88rem', color: 'var(--text-muted)', fontWeight: '500', whiteSpace: 'nowrap' }}>{user.cedula}</td>
+                                        {/* Correo */}
+                                        <td style={{ padding: '1rem 1.2rem', fontSize: '0.88rem', color: 'var(--text-muted)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.correo}</td>
+                                        {/* Rol */}
+                                        <td style={{ padding: '1rem 1.2rem', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                                            <span className={`badge ${user.rol === 'admin' ? 'badge-entrada' : 'badge-salida'}`} style={{ fontSize: '0.65rem', borderRadius: '8px' }}>
                                                 {user.rol.toUpperCase()}
                                             </span>
                                         </td>
-                                        <td style={{ padding: '1.2rem', textAlign: 'right' }}>
-                                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                                                <button onClick={() => handleEditClick(user)} title="Editar" style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: '8px', cursor: 'pointer', padding: '0.4rem', display: 'flex', alignItems: 'center', color: 'var(--primary-color)', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background='rgba(99,102,241,0.25)'} onMouseLeave={e => e.currentTarget.style.background='rgba(99,102,241,0.1)'}>
+                                        {/* Acciones */}
+                                        <td style={{ padding: '1rem 1.2rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                                            <div style={{ display: 'inline-flex', gap: '0.5rem', alignItems: 'center' }}>
+                                                <button onClick={() => handleEditClick(user)} title="Editar" style={editBtnStyle}
+                                                    onMouseEnter={e => e.currentTarget.style.background='rgba(99,102,241,0.25)'}
+                                                    onMouseLeave={e => e.currentTarget.style.background='rgba(99,102,241,0.1)'}>
                                                     <Pencil size={15} />
                                                 </button>
-                                                <button onClick={() => handleDelete(user.id)} title="Eliminar" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', cursor: 'pointer', padding: '0.4rem', display: 'flex', alignItems: 'center', color: '#ef4444', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.25)'} onMouseLeave={e => e.currentTarget.style.background='rgba(239,68,68,0.1)'}>
+                                                <button onClick={() => handleDelete(user.id)} title="Eliminar" style={deleteBtnStyle}
+                                                    onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.25)'}
+                                                    onMouseLeave={e => e.currentTarget.style.background='rgba(239,68,68,0.1)'}>
                                                     <Trash2 size={15} />
                                                 </button>
                                             </div>
@@ -152,6 +156,62 @@ const Usuarios = () => {
                 </div>
             </div>
 
+            {/* ── MOBILE CARDS ── */}
+            <div className="mobile-cards">
+                {usuariosFiltrados.length > 0 ? (
+                    usuariosFiltrados.map((user) => (
+                        <div key={user.id} style={{
+                            background: 'var(--surface)',
+                            border: '1px solid var(--border)',
+                            borderRadius: '16px',
+                            padding: '1rem 1.2rem',
+                            marginBottom: '0.75rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.9rem',
+                        }}>
+                            {/* Avatar */}
+                            <div style={avatarStyle}>{(user.nombre || '?').charAt(0).toUpperCase()}</div>
+
+                            {/* Info */}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontWeight: '700', fontSize: '0.95rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {user.nombre || 'Sin Nombre'}
+                                </div>
+                                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                    {user.cedula}
+                                </div>
+                            </div>
+
+                            {/* Rol badge */}
+                            <span className={`badge ${user.rol === 'admin' ? 'badge-entrada' : 'badge-salida'}`}
+                                style={{ fontSize: '0.6rem', borderRadius: '8px', flexShrink: 0 }}>
+                                {user.rol.toUpperCase()}
+                            </span>
+
+                            {/* Buttons — always visible, side by side */}
+                            <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
+                                <button onClick={() => handleEditClick(user)} title="Editar" style={editBtnStyle}
+                                    onMouseEnter={e => e.currentTarget.style.background='rgba(99,102,241,0.25)'}
+                                    onMouseLeave={e => e.currentTarget.style.background='rgba(99,102,241,0.1)'}>
+                                    <Pencil size={15} />
+                                </button>
+                                <button onClick={() => handleDelete(user.id)} title="Eliminar" style={deleteBtnStyle}
+                                    onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.25)'}
+                                    onMouseLeave={e => e.currentTarget.style.background='rgba(239,68,68,0.1)'}>
+                                    <Trash2 size={15} />
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        No se encontraron resultados para "{busqueda}"
+                    </div>
+                )}
+            </div>
+
+            {/* Modal editar */}
             {modalAbierto && (
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1.5rem' }}>
                     <div className="card shadow-lg" style={{ width: '100%', maxWidth: '440px', padding: '2.5rem', borderRadius: '28px', background: 'var(--surface)', border: '1px solid var(--border)', backdropFilter: 'blur(30px)' }}>
@@ -187,13 +247,70 @@ const Usuarios = () => {
             )}
 
             <style>{`
-                .table-row-hover:hover { background-color: rgba(255,255,255,0.05); }
-                @media (max-width: 768px) {
-                    .hide-mobile { display: none !important; }
+                .table-row-hover:hover { background-color: rgba(255,255,255,0.04); }
+
+                /* Desktop: show table, hide cards */
+                .desktop-table { display: block; }
+                .mobile-cards  { display: none; }
+
+                /* Mobile: hide table, show cards */
+                @media (max-width: 700px) {
+                    .desktop-table { display: none !important; }
+                    .mobile-cards  { display: block !important; }
                 }
             `}</style>
         </div>
     );
+};
+
+/* ── Shared style objects ── */
+const thStyle = {
+    padding: '1.1rem 1.2rem',
+    textAlign: 'left',
+    fontSize: '0.72rem',
+    fontWeight: '800',
+    color: 'var(--text-muted)',
+    textTransform: 'uppercase',
+    whiteSpace: 'nowrap',
+};
+
+const avatarStyle = {
+    width: '36px',
+    height: '36px',
+    minWidth: '36px',
+    borderRadius: '10px',
+    background: 'rgba(99,102,241,0.15)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '0.9rem',
+    fontWeight: '800',
+    color: 'var(--primary-color)',
+    flexShrink: 0,
+};
+
+const editBtnStyle = {
+    background: 'rgba(99,102,241,0.1)',
+    border: '1px solid rgba(99,102,241,0.2)',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    padding: '0.4rem',
+    display: 'flex',
+    alignItems: 'center',
+    color: 'var(--primary-color)',
+    transition: 'background 0.2s',
+};
+
+const deleteBtnStyle = {
+    background: 'rgba(239,68,68,0.1)',
+    border: '1px solid rgba(239,68,68,0.2)',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    padding: '0.4rem',
+    display: 'flex',
+    alignItems: 'center',
+    color: '#ef4444',
+    transition: 'background 0.2s',
 };
 
 export default Usuarios;
