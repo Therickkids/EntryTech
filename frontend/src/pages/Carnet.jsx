@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Camera, Wifi, ShieldCheck, RefreshCw } from 'lucide-react';
+import { Camera, Wifi, ShieldCheck, RefreshCw, Eye, EyeOff, Copy } from 'lucide-react';
 import api, { mensajeDeError } from '../services/api';
 import { obtenerUsuario, actualizarUsuario } from '../services/session';
 
@@ -23,6 +23,10 @@ const Carnet = () => {
     const [syncStatus, setSyncStatus] = useState('idle');
     const [syncError, setSyncError] = useState('');
     const [nfcMsg, setNfcMsg] = useState(null);
+    // El código va oculto por defecto: es el mismo secreto que contiene el QR,
+    // y mostrarlo siempre facilitaría copiarlo mirando por encima del hombro.
+    const [mostrarCodigo, setMostrarCodigo] = useState(false);
+    const [copiado, setCopiado] = useState(false);
 
     const fileInputRef = useRef(null);
     const ultimoQR = useRef(null);
@@ -161,6 +165,18 @@ const Carnet = () => {
         reader.readAsDataURL(file);
         // Permite volver a elegir el mismo archivo si el primer intento falló.
         e.target.value = '';
+    };
+
+    const copiarCodigo = async () => {
+        try {
+            await navigator.clipboard.writeText(usuario.carnet.codigo_qr);
+            setCopiado(true);
+            setTimeout(() => setCopiado(false), 2000);
+        } catch {
+            // El portapapeles exige contexto seguro y puede estar bloqueado.
+            // El código queda visible para copiarlo a mano.
+            setCopiado(false);
+        }
     };
 
     const transmitirNFC = async () => {
@@ -344,6 +360,50 @@ const Carnet = () => {
                                 Código dinámico de un solo uso
                             </span>
                         </p>
+
+                        {/*
+                          Versión en texto del código.
+                          El simulador de kiosco admite el ingreso manual, pero hasta ahora el
+                          código solo existía dentro de la imagen QR: no había forma de leerlo
+                          ni copiarlo, así que aquel campo resultaba inservible.
+                        */}
+                        <div style={{ width: '100%' }}>
+                            <button
+                                type="button"
+                                className="btn btn-secondary btn-block"
+                                onClick={() => setMostrarCodigo((v) => !v)}
+                                aria-expanded={mostrarCodigo}
+                                aria-controls="codigo-texto"
+                                style={{ fontSize: '0.8rem' }}
+                            >
+                                {mostrarCodigo ? <EyeOff size={16} /> : <Eye size={16} />}
+                                {mostrarCodigo ? 'Ocultar código' : 'Ver código en texto'}
+                            </button>
+
+                            {mostrarCodigo && (
+                                <div id="codigo-texto" className="campo-con-boton">
+                                    <code style={{
+                                        minWidth: 0,
+                                        display: 'block',
+                                        padding: '0.7rem 0.9rem',
+                                        background: 'rgba(0,0,0,0.35)',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: 'var(--radio-sm)',
+                                        fontSize: '0.8rem',
+                                        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                                        color: 'var(--text-main)',
+                                        // El código no tiene espacios: sin esto desbordaría la tarjeta.
+                                        wordBreak: 'break-all',
+                                        userSelect: 'all',
+                                    }}>
+                                        {usuario.carnet.codigo_qr}
+                                    </code>
+                                    <button type="button" className="btn btn-secondary" onClick={copiarCodigo}>
+                                        <Copy size={16} /> {copiado ? 'Copiado' : 'Copiar'}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                             <RefreshCw

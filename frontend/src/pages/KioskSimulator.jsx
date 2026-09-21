@@ -304,7 +304,8 @@ const KioskSimulator = () => {
                     </button>
                 </div>
                 <span className="form-hint" style={{ display: 'block', marginTop: '0.5rem' }}>
-                    Úsalo cuando la cámara no esté disponible. El código empieza por QR- o NFC-.
+                    Úsalo cuando la cámara no esté disponible. El código está en tu carnet digital,
+                    bajo el botón «Ver código en texto».
                 </span>
             </form>
 

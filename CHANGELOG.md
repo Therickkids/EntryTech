@@ -2,6 +2,52 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [2.0.1] — 21 de septiembre de 2026
+
+Correcciones detectadas al revisar la interfaz ya desplegada.
+
+### Corregido
+
+- **El ingreso manual del kiosco era inservible en móvil.** En pantallas de
+  hasta 480 px el campo de texto medía 37 px de ancho y el botón «Validar»
+  sobresalía del borde de su tarjeta.
+
+  Causa: la fila reutilizaba `.pila-responsive` con `flex-wrap: nowrap` en
+  línea, y la regla `.pila-responsive > .btn { flex: 1 1 100% }` daba al botón
+  base del 100 %. Sin poder envolver, el campo se colapsaba al mínimo.
+
+  Es el mismo patrón que provocó el fallo original del inicio de sesión, pero
+  invertido: allí unos estilos en línea anulaban una regla correcta; aquí una
+  regla demasiado amplia obligaba a anularla con estilos en línea.
+
+- **Se eliminó la regla global `.btn { width: 100% }`** de la consulta de
+  medios de 480 px. Afectaba a todos los botones de la aplicación, incluidos
+  los de paginación y los de icono, y forzaba excepciones en línea caso por
+  caso. El apilado se conserva, pero limitado a `.pila-responsive`.
+
+- **El código no se mostraba en ninguna parte.** El campo de ingreso manual
+  pedía un código que solo existía codificado dentro de la imagen QR: no había
+  forma de leerlo ni copiarlo, así que la función era inutilizable. El carnet
+  incorpora ahora un botón «Ver código en texto» que revela el código en
+  monoespaciado con opción de copiar. Va oculto por defecto porque es el mismo
+  secreto que contiene el QR.
+
+### Añadido
+
+- Nueva clase `.campo-con-boton` basada en CSS Grid: una columna en móvil y dos
+  a partir de 520 px. Sustituye a la combinación de utilidades que causaba el
+  conflicto.
+- Texto de ayuda en el kiosco que indica dónde encontrar el código.
+
+### Verificación
+
+- Ingreso manual medido a 320, 375 y 820 px: campo y botón dentro de la tarjeta
+  en los tres casos.
+- Se renderizaron por fin las pantallas de panel, gestión de personal y carnet
+  digital, usando una API simulada local para sortear la autenticación. Las
+  tres sin desbordamiento a 375 px. En la versión 2.0.0 solo se habían revisado
+  sobre la hoja de estilos.
+
 ## [2.0.0] — 21 de septiembre de 2026
 
 Revisión completa de seguridad, corrección de errores y rediseño responsive.
