@@ -71,7 +71,7 @@ const Login = () => {
     };
 
     return (
-        <div className="auth-container cielo-profundo" style={{ position: 'relative' }}>
+        <div className="auth-container" style={{ position: 'relative' }}>
             {/* Campo estelar con paralaje y constelaciones que siguen al cursor. */}
             <StarField />
 

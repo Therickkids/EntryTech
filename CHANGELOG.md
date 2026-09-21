@@ -4,6 +4,33 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.1.0] — 21 de septiembre de 2026
 
+### Cambiado
+
+- **La foto de perfil se optimiza en el navegador antes de subirla**
+  (`utils/imagen.js`). Se recorta a un cuadrado centrado y se reduce a 400 px de
+  lado en JPEG de calidad 0,85. Una foto de móvil de 4.032 × 3.024 px, que
+  ocupaba 1,33 MB codificada en Base64, pasa a 45,6 kB: **una reducción del
+  96,6 %**, medida sobre el sistema. Mitiga la limitación de la sección 8.2 del
+  documento del proyecto.
+  - El recorte cuadrado evita que un retrato alargado se deforme dentro del
+    avatar circular del carnet.
+  - Se respeta la orientación EXIF mediante `createImageBitmap`: las fotos
+    tomadas en vertical con el teléfono llevan la rotación en los metadatos y
+    aparecían giradas 90 grados al dibujarlas en un lienzo.
+  - Se rellena el fondo en blanco antes de dibujar, porque el JPEG no admite
+    transparencia y las zonas transparentes de un PNG saldrían negras.
+  - El tope del archivo de entrada sube de 2 a 10 MB: ya no protege a la base de
+    datos, solo evita decodificar un archivo desmedido.
+
+### Decidido
+
+- **La ruta del simulador de kiosco sigue exigiendo sesión iniciada.** La
+  historia HU036 pedía acceso público, pero un kiosco abierto permitiría a
+  cualquiera con conexión registrar accesos ajenos conociendo un código de
+  carnet. Es el único caso de la auditoría en que se corrige la historia y no el
+  sistema. Para un terminal físico permanente existe `KIOSK_API_KEY`, que
+  autentica al dispositivo sin exponer el endpoint.
+
 ### Añadido
 
 - **Campo estelar interactivo en la pantalla de inicio** (`StarField.jsx`), en

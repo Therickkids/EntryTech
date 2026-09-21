@@ -38,6 +38,14 @@ const config = {
 
     // Tamaño máximo del cuerpo JSON (la foto viaja en Base64).
     jsonLimit: process.env.JSON_LIMIT || '3mb',
+
+    /*
+      Clave de api.nasa.gov para el fondo diario. DEMO_KEY funciona, pero su
+      límite es de 30 peticiones por hora y 50 por día para toda la dirección
+      IP, insuficiente para un sitio publicado. La clave propia es gratuita y
+      se obtiene al instante en https://api.nasa.gov
+    */
+    nasaApiKey: process.env.NASA_API_KEY || 'DEMO_KEY',
 };
 
 export default config;

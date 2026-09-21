@@ -1,0 +1,66 @@
+CRÉDITOS DE LAS IMÁGENES DE FONDO
+=================================
+
+Todas las fotografías de esta carpeta proceden del archivo público de la NASA
+(images.nasa.gov) y son material de dominio público conforme a la política de
+uso de medios de la agencia.
+
+Procesado aplicado a cada una: redimensionado a 1.920 píxeles de ancho con
+filtro Lanczos desde el original, JPEG progresivo de calidad 82 y metadatos
+descartados. El script está en el historial del proyecto.
+
+  earthset.jpg          NASA / Artemis II · art002e021007
+                        "Earthset Views"
+                        Original 5568x3712 (0,9 MB) -> 1920x1280 (122 kB)
+
+  tierra-naciente.jpg   NASA / Artemis II · art002e009289
+                        "A Setting Earth"
+                        Original 5568x3712 (2,2 MB) -> 1920x1280 (420 kB)
+
+  amanecer-orbital.jpg  NASA / ISS Expedición 73 · iss073e1068530
+                        "An orbital sunrise bursts above Earth's horizon"
+                        Original 4928x2768 (3,4 MB) -> 1920x1078 (288 kB)
+
+  aurora.jpg            NASA / ISS Expedición 73 · iss073e0761799
+                        "A wispy aurora caps Earth's horizon as an orbital
+                         sunrise illuminates the atmosphere"
+                        Original 8256x5504 (7,4 MB) -> 1920x1280 (193 kB)
+
+  ciudades.jpg          NASA / ISS Expedición 73 · iss073e0685684
+                        "The city lights of New Delhi, India, underneath a
+                         starry night sky"
+                        Original 8256x5504 (12,1 MB) -> 1920x1280 (453 kB)
+
+  resplandor.jpg        NASA / ISS Expedición 72 · iss072e030147
+                        "The atmospheric glow blankets Earth beneath a
+                         sparkling field of stars"
+                        Original 8256x5504 (16,7 MB) -> 1920x1280 (491 kB)
+
+
+IMAGEN ASTRONÓMICA DEL DÍA (APOD)
+---------------------------------
+
+La aplicación consulta a diario la API APOD de la NASA para renovar el fondo
+de la pantalla de acceso.
+
+ADVERTENCIA IMPORTANTE: las publicaciones de APOD NO son todas de dominio
+público. La NASA las difunde con permiso de sus autores, pero muchas
+pertenecen a astrofotógrafos particulares que conservan sus derechos.
+Incorporarlas sin comprobación al fondo de la aplicación sería una
+infracción de derechos de autor.
+
+Por eso el backend solo acepta una imagen cuando cumple dos condiciones:
+
+  1. El campo "copyright" viene ausente, lo que indica material propio de la
+     NASA y por tanto de dominio público.
+  2. El campo "media_type" es "image": hay días en que la publicación es un
+     vídeo o una animación interactiva.
+
+Cuando no se cumplen, se utiliza una de las fotografías de esta carpeta, que
+rotan igualmente cada día según la fecha del calendario.
+
+La comprobación está en backend/controllers/fondoController.js
+
+Medición realizada el 21 de septiembre de 2026 sobre los 14 días anteriores:
+9 de 14 publicaciones tenían copyright de terceros y 2 no eran imágenes. El
+rechazo es, por tanto, el caso habitual.

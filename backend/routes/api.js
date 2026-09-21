@@ -16,6 +16,7 @@ import {
     getQrInfo,
     getMisAccesos,
 } from '../controllers/accessController.js';
+import { getFondo } from '../controllers/fondoController.js';
 import { verifyToken, verifyAdmin, verifyKiosk } from '../middlewares/authMiddleware.js';
 import { rateLimit } from '../middlewares/rateLimit.js';
 
@@ -33,6 +34,13 @@ const limiteAcceso = rateLimit({ ventanaMs: 60 * 1000, maximo: 60, nombre: 'acce
 
 // Comprobación de salud (Render duerme las instancias del plan gratuito).
 router.get('/ping', (req, res) => res.status(200).json({ mensaje: 'pong' }));
+
+/*
+  Fondo diario de la pantalla de acceso. Es público a la fuerza: lo consulta el
+  login antes de que exista sesión. Solo devuelve la dirección de una imagen de
+  la NASA, sin ningún dato del sistema.
+*/
+router.get('/fondo', rateLimit({ ventanaMs: 60 * 1000, maximo: 120, nombre: 'fondo' }), getFondo);
 
 // Autenticación
 router.post('/register', limiteRegistro, register);

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-ro
 import api from './services/api';
 import { obtenerToken, obtenerUsuario } from './services/session';
 import ErrorBoundary from './components/ErrorBoundary';
+import FondoEscena from './components/FondoEscena';
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -65,6 +66,9 @@ function App() {
     return (
         <ErrorBoundary>
             <Router>
+                {/* Fuera de <Routes> a propósito: así sobrevive a la navegación
+                    y el fondo no parpadea entre pantallas. */}
+                <FondoEscena />
                 <div className="app-container">
                     <Routes>
                         <Route path="/" element={<Inicio />} />

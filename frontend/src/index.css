@@ -455,34 +455,114 @@ img, svg, video, canvas {
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
 }
 
+/* --- ESCENA DE FONDO --- */
+
+/*
+  Fondo fotográfico compartido por toda la aplicación. Vive detrás de todo
+  (z-index negativo) y no intercepta clics.
+*/
+.escena {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  overflow: hidden;
+  pointer-events: none;
+  background-color: #04040a;
+}
+
+.escena-capa {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  /*
+    La capa entrante llega ligeramente ampliada y se asienta. Es un gesto
+    contenido: un 4 % basta para dar sensación de avance sin que se note el
+    zoom, que es lo que distingue una transición sobria de una aparatosa.
+  */
+  transform: scale(1.04);
+  /*
+    La transición se declara SIEMPRE, no al momento de cambiar de escena.
+    Un navegador solo anima una propiedad si `transition` ya estaba en vigor
+    antes de que el valor cambiase. Al añadir ambas cosas en el mismo
+    recálculo de estilos, el cambio se aplica de golpe y no se ve nada.
+    La escena inicial se exceptúa con .sin-transicion, más abajo.
+
+    La opacidad tarda menos que la escala, así el movimiento continúa un
+    instante después de que la imagen ya está completa: esa diferencia es lo
+    que hace que el cambio se perciba asentado y no cortado.
+  */
+  transition:
+    opacity 1100ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 1900ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.escena-capa.activa {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/*
+  Primer fotograma: el fondo debe estar ya puesto al abrir la aplicación, no
+  llegar con un fundido. La clase se retira en cuanto el componente monta.
+*/
+.escena.sin-transicion .escena-capa,
+.escena.sin-transicion .escena-velo {
+  transition: none;
+}
+
+/*
+  Velo de legibilidad. El acceso puede permitirse una imagen más presente; las
+  pantallas de trabajo necesitan contraste suficiente para leer tablas y
+  formularios, así que el velo se intensifica al entrar.
+*/
+.escena-velo {
+  position: absolute;
+  inset: 0;
+  /*
+    Calibrado mirando la pantalla: con valores más altos la fotografía se
+    intuía pero no se veía, y entonces no compensa cargarla.
+  */
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(4, 4, 10, 0.05) 0%, rgba(4, 4, 10, 0.5) 100%),
+    linear-gradient(180deg, rgba(4, 4, 10, 0.3) 0%, rgba(4, 4, 10, 0.08) 45%, rgba(4, 4, 10, 0.55) 100%);
+  transition: background 1100ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.escena-velo.velo-interior {
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(4, 4, 10, 0.68) 0%, rgba(4, 4, 10, 0.9) 100%),
+    linear-gradient(180deg, rgba(4, 4, 10, 0.82) 0%, rgba(4, 4, 10, 0.78) 100%);
+}
+
+/*
+  Los orbes difuminados del contenedor pierden sentido sobre una fotografía:
+  la ensucian y cuestan dos capas de desenfoque de 600 px. Se retiran.
+*/
+.app-container::before,
+.app-container::after {
+  display: none;
+}
+
+/* Con movimiento reducido, el cambio de escena es inmediato. */
+@media (prefers-reduced-motion: reduce) {
+  .escena-capa,
+  .escena-velo {
+    transition: none;
+    transform: none;
+  }
+}
+
 /* --- CIELO PROFUNDO (pantalla de inicio) --- */
 
 /*
-  Viñeta que oscurece los bordes para dar sensación de profundidad, como en una
-  fotografía astronómica. Va detrás del lienzo de estrellas: el lienzo vive
-  dentro de .app-container, que crea su propio contexto de apilamiento.
+  Las nebulosas dibujadas con degradados se retiraron al incorporar la
+  fotografía de fondo: dos efectos compitiendo por el mismo espacio restaban
+  claridad en lugar de sumar. La profundidad la aporta ahora la imagen real.
 */
-.cielo-profundo::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 80% 60% at 20% 15%, rgba(76, 29, 149, 0.28), transparent 60%),
-    radial-gradient(ellipse 70% 55% at 85% 80%, rgba(14, 116, 144, 0.22), transparent 60%),
-    radial-gradient(ellipse 60% 50% at 60% 40%, rgba(129, 78, 216, 0.14), transparent 65%);
-}
-
-/* Oscurecimiento perimetral, encima de las nebulosas. */
-.cielo-profundo::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(ellipse at 50% 45%, transparent 30%, rgba(0, 0, 0, 0.55) 100%);
-}
 
 /* Título con brillo estelar. */
 .titulo-astral {

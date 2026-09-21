@@ -3,6 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Camera, Wifi, ShieldCheck, RefreshCw, Eye, EyeOff, Copy } from 'lucide-react';
 import api, { mensajeDeError } from '../services/api';
 import { obtenerUsuario, actualizarUsuario } from '../services/session';
+import { prepararFoto, formatearPeso } from '../utils/imagen';
 
 /*
   Intervalo de sincronización del QR.
@@ -12,7 +13,13 @@ import { obtenerUsuario, actualizarUsuario } from '../services/session';
   el kiosco, así que 15 segundos es de sobra.
 */
 const INTERVALO_SYNC_MS = 15000;
-const TAM_MAX_FOTO = 2 * 1024 * 1024;
+
+/*
+  Tope del archivo de entrada. Es holgado a propósito: la imagen se reduce en el
+  navegador antes de enviarla, así que el límite ya no protege a la base de
+  datos, solo evita que el dispositivo intente decodificar un archivo enorme.
+*/
+const TAM_MAX_ENTRADA = 10 * 1024 * 1024;
 
 const Carnet = () => {
     const [usuario, setUsuario] = useState(obtenerUsuario);
@@ -124,47 +131,50 @@ const Carnet = () => {
         };
     }, [usuario?.id]);
 
-    const handleFotoChange = (e) => {
+    const handleFotoChange = async (e) => {
         const file = e.target.files?.[0];
+        // Permite volver a elegir el mismo archivo si el intento anterior falló.
+        e.target.value = '';
         if (!file) return;
 
         // Validación de tipo: antes solo se comprobaba el tamaño, así que un
         // archivo cualquiera renombrado se enviaba al servidor igualmente.
         if (!/^image\/(png|jpe?g|webp|gif)$/i.test(file.type)) {
             setFotoMsg({ tipo: 'error', texto: 'Formato no válido. Usa PNG, JPG, WEBP o GIF.' });
-            e.target.value = '';
             return;
         }
-        if (file.size > TAM_MAX_FOTO) {
-            setFotoMsg({ tipo: 'error', texto: 'La imagen es muy grande. Máximo 2 MB.' });
-            e.target.value = '';
+        if (file.size > TAM_MAX_ENTRADA) {
+            setFotoMsg({ tipo: 'error', texto: 'El archivo es demasiado grande. Máximo 10 MB.' });
             return;
         }
 
-        const reader = new FileReader();
-        reader.onerror = () => {
-            setFotoMsg({ tipo: 'error', texto: 'No se pudo leer el archivo.' });
+        setUploadingFoto(true);
+        setFotoMsg(null);
+
+        try {
+            /*
+              La imagen se recorta y comprime en el navegador antes de subirla.
+              Antes se enviaba el archivo original: una foto de móvil de 2 MB
+              ocupaba unos 2,7 MB ya codificada en Base64 y se guardaba entera en
+              PostgreSQL, que es la limitación descrita en la sección 8.2 del
+              documento del proyecto.
+            */
+            const { dataUrl, bytesOriginal, bytesFinal } = await prepararFoto(file);
+
+            await api.put(`/usuarios/${usuario.id}/foto`, { foto_url: dataUrl });
+
+            const actualizado = { ...usuario, foto_url: dataUrl };
+            setUsuario(actualizado);
+            actualizarUsuario(actualizado);
+            setFotoMsg({
+                tipo: 'exito',
+                texto: `Foto actualizada. Optimizada de ${formatearPeso(bytesOriginal)} a ${formatearPeso(bytesFinal)}.`,
+            });
+        } catch (err) {
+            setFotoMsg({ tipo: 'error', texto: mensajeDeError(err, 'Error al subir la foto.') });
+        } finally {
             setUploadingFoto(false);
-        };
-        reader.onloadend = async () => {
-            const base64 = reader.result;
-            setUploadingFoto(true);
-            setFotoMsg(null);
-            try {
-                await api.put(`/usuarios/${usuario.id}/foto`, { foto_url: base64 });
-                const actualizado = { ...usuario, foto_url: base64 };
-                setUsuario(actualizado);
-                actualizarUsuario(actualizado);
-                setFotoMsg({ tipo: 'exito', texto: 'Foto actualizada correctamente.' });
-            } catch (err) {
-                setFotoMsg({ tipo: 'error', texto: mensajeDeError(err, 'Error al subir la foto.') });
-            } finally {
-                setUploadingFoto(false);
-            }
-        };
-        reader.readAsDataURL(file);
-        // Permite volver a elegir el mismo archivo si el primer intento falló.
-        e.target.value = '';
+        }
     };
 
     const copiarCodigo = async () => {
@@ -446,7 +456,7 @@ const Carnet = () => {
                         className="btn btn-secondary btn-block"
                         disabled={uploadingFoto}
                     >
-                        <Camera size={18} /> {uploadingFoto ? 'Subiendo...' : 'Cambiar foto de perfil'}
+                        <Camera size={18} /> {uploadingFoto ? 'Optimizando...' : 'Cambiar foto de perfil'}
                     </button>
 
                     <button onClick={transmitirNFC} className="btn btn-primary btn-block">
