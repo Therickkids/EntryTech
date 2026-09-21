@@ -63,7 +63,29 @@ Herramienta que simula el punto de acceso físico. Valida si un usuario tiene pe
 *   **Backend:** Desplegado como un Web Service en **Render**.
 *   **Variables de Entorno:** Uso de archivos `.env` para proteger llaves secretas y URLs de base de datos.
 
-## 8. Mejoras Recientes (v1.1.0)
+## 8. Auditoría y correcciones (v2.0.0)
+
+Revisión completa de seguridad, corrección de errores y rediseño responsive.
+El detalle exhaustivo está en [`CHANGELOG.md`](CHANGELOG.md) y en las secciones
+25 a 28 del documento del proyecto. Resumen:
+
+*   **Seguridad:** se corrigieron 9 vulnerabilidades, 3 de ellas críticas
+    (escalada de privilegios en el registro, acceso a carnets ajenos y clave JWT
+    por defecto). Se añadieron límite de intentos, lista blanca de CORS,
+    cabeceras de seguridad y validación de entrada en todos los endpoints.
+*   **Errores:** 12 defectos funcionales, entre ellos que eliminar usuarios
+    fallaba siempre (faltaba `ON DELETE CASCADE`), el doble registro de acceso
+    por un cierre obsoleto en el lector QR y la condición de carrera que anulaba
+    la regla Anti-Passback.
+*   **Responsive:** el inicio de sesión no era adaptable porque unos estilos en
+    línea anulaban las consultas de medios. Se rehízo el sistema de diseño con
+    espaciado y tipografía fluidos, verificado de 320 a 1.920 píxeles.
+*   **Migración obligatoria:** ejecutar una vez
+    `migrations/001_cascade_e_indices.sql` sobre la base de datos.
+*   **Variables nuevas:** `JWT_SECRET` y `CORS_ORIGINS` son obligatorias en
+    producción (ver `backend/.env.example`).
+
+## 9. Mejoras Recientes (v1.1.0)
 *   **Buscador Inteligente:** Optimización del motor de búsqueda en el Dashboard con soporte para normalización de caracteres (tildes) y búsqueda multi-campo.
 *   **Seguridad en el Cierre de Sesión:** Rediseño del botón de logout con estado de confirmación interactiva para prevenir cierres accidentales.
 *   **Optimización de Tiempos Reales:** Implementación de ordenación por ID descendente para asegurar que los registros más nuevos aparezcan siempre en la parte superior.

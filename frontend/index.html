@@ -2,12 +2,25 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      viewport-fit=cover permite que el fondo llegue hasta los bordes en
+      pantallas con notch; el CSS compensa con env(safe-area-inset-*).
+      maximum-scale se deja libre a propósito: fijarlo impide al usuario hacer
+      zoom, lo que incumple el criterio 1.4.4 de las WCAG.
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="EntryTech: sistema inteligente de control de acceso con carnet digital, código QR dinámico y registro de entradas y salidas en tiempo real." />
+    <meta name="theme-color" content="#050505" />
+    <meta name="color-scheme" content="dark" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>EntryTech - Sistema Inteligente</title>
+    <!-- Precarga de la conexión a Google Fonts: evita el parpadeo de fuente. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <title>EntryTech · Sistema Inteligente de Acceso</title>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>EntryTech necesita JavaScript para funcionar. Actívalo en tu navegador.</noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

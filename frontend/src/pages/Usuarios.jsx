@@ -1,161 +1,295 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import api from '../services/api';
-import { Search, Pencil, Trash2 } from 'lucide-react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { Search, Pencil, Trash2, UserPlus, X } from 'lucide-react';
+import api, { mensajeDeError } from '../services/api';
+import { alCerrarSesion, obtenerUsuario } from '../services/session';
 
-let globalUsuariosCache = [];
-let hasFetchedUsuariosInitially = false;
+/*
+  Caché de módulo, vaciada al cerrar sesión para no filtrar el listado de
+  personal al siguiente usuario que entre en el mismo navegador.
+*/
+let cacheUsuarios = [];
+let yaSeCargo = false;
+
+alCerrarSesion(() => {
+    cacheUsuarios = [];
+    yaSeCargo = false;
+});
+
+const sinTildes = (valor) =>
+    (valor || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+const FORM_VACIO = { cedula: '', nombre: '', correo: '', password: '', rol: 'usuario' };
 
 const Usuarios = () => {
-    const [usuarios, setUsuarios] = useState(globalUsuariosCache);
-    const [loading, setLoading] = useState(!hasFetchedUsuariosInitially);
+    const [usuarios, setUsuarios] = useState(cacheUsuarios);
+    const [loading, setLoading] = useState(!yaSeCargo);
     const [error, setError] = useState(null);
+    const [aviso, setAviso] = useState(null);
     const [busqueda, setBusqueda] = useState('');
-    
-    const [modalAbierto, setModalAbierto] = useState(false);
+
+    const [modalCrear, setModalCrear] = useState(false);
+    const [formCrear, setFormCrear] = useState(FORM_VACIO);
+    const [guardando, setGuardando] = useState(false);
+    const [errorModal, setErrorModal] = useState(null);
+
     const [editandoUser, setEditandoUser] = useState(null);
     const [editForm, setEditForm] = useState({ nombre: '', correo: '', rol: '' });
-    
-    // Modal de solo lectura para ver todos los detalles (nombres largos)
-    const [viendoUser, setViendoUser] = useState(null);
 
-    const fetchUsuarios = async () => {
+    const [viendoUser, setViendoUser] = useState(null);
+    const [confirmarBorrado, setConfirmarBorrado] = useState(null);
+
+    const usuarioActual = obtenerUsuario();
+
+    const fetchUsuarios = useCallback(async () => {
         try {
             const res = await api.get('/usuarios');
-            globalUsuariosCache = res.data;
-            hasFetchedUsuariosInitially = true;
+            cacheUsuarios = res.data;
+            yaSeCargo = true;
             setUsuarios(res.data);
             setError(null);
         } catch (err) {
-            setError('Error al cargar usuarios.');
+            setError(mensajeDeError(err, 'Error al cargar usuarios.'));
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
+    useEffect(() => { fetchUsuarios(); }, [fetchUsuarios]);
+
+    // Cerrar cualquier modal con la tecla Escape (antes solo se podía con el ratón).
     useEffect(() => {
-        fetchUsuarios();
+        const alPulsar = (e) => {
+            if (e.key !== 'Escape') return;
+            setModalCrear(false);
+            setEditandoUser(null);
+            setViendoUser(null);
+            setConfirmarBorrado(null);
+        };
+        window.addEventListener('keydown', alPulsar);
+        return () => window.removeEventListener('keydown', alPulsar);
     }, []);
 
     const usuariosFiltrados = useMemo(() => {
-        const q = busqueda.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const q = sinTildes(busqueda.trim());
         if (!q) return usuarios;
-        return usuarios.filter(u => {
-            const nombre = (u.nombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            const correo = (u.correo || '').toLowerCase();
-            const cedula = (u.cedula || '').toString().toLowerCase();
-            return nombre.includes(q) || correo.includes(q) || cedula.includes(q);
-        });
+        return usuarios.filter((u) =>
+            sinTildes(u.nombre).includes(q) ||
+            sinTildes(u.correo).includes(q) ||
+            sinTildes(u.cedula).includes(q));
     }, [usuarios, busqueda]);
+
+    const handleCrear = async (e) => {
+        e.preventDefault();
+        setErrorModal(null);
+        setGuardando(true);
+        try {
+            await api.post('/usuarios', formCrear);
+            setModalCrear(false);
+            setFormCrear(FORM_VACIO);
+            setAviso('Usuario creado correctamente.');
+            await fetchUsuarios();
+        } catch (err) {
+            setErrorModal(mensajeDeError(err, 'No se pudo crear el usuario.'));
+        } finally {
+            setGuardando(false);
+        }
+    };
 
     const handleEditClick = (user) => {
         setEditandoUser(user);
-        setEditForm({ nombre: user.nombre, correo: user.correo, rol: user.rol });
-        setModalAbierto(true);
+        setEditForm({ nombre: user.nombre || '', correo: user.correo || '', rol: user.rol || 'usuario' });
+        setErrorModal(null);
     };
 
-    const handleSaveEdit = async () => {
+    const handleSaveEdit = async (e) => {
+        e.preventDefault();
+        setErrorModal(null);
+        setGuardando(true);
         try {
             await api.put(`/usuarios/${editandoUser.id}`, editForm);
-            setModalAbierto(false);
-            fetchUsuarios();
-        } catch (error) {
-            alert('Error al actualizar');
+            setEditandoUser(null);
+            setAviso('Usuario actualizado correctamente.');
+            await fetchUsuarios();
+        } catch (err) {
+            // Antes se usaba alert() con un texto fijo: el usuario nunca sabía
+            // si había fallado por un correo duplicado o por otra causa.
+            setErrorModal(mensajeDeError(err, 'No se pudo actualizar el usuario.'));
+        } finally {
+            setGuardando(false);
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('¿Eliminar este usuario?')) return;
+    const handleDelete = async () => {
+        const id = confirmarBorrado?.id;
+        if (!id) return;
+        setGuardando(true);
         try {
             await api.delete(`/usuarios/${id}`);
-            fetchUsuarios();
-        } catch (error) {
-            alert('Error al eliminar');
+            setConfirmarBorrado(null);
+            setAviso('Usuario eliminado correctamente.');
+            await fetchUsuarios();
+        } catch (err) {
+            setErrorModal(mensajeDeError(err, 'No se pudo eliminar el usuario.'));
+        } finally {
+            setGuardando(false);
         }
     };
 
-    if (loading) return <div className="main-content"><p>Cargando personal...</p></div>;
+    // `rol` puede llegar nulo desde la base de datos; antes user.rol.toUpperCase()
+    // lanzaba una excepción que dejaba la pantalla completamente en blanco.
+    const rolTexto = (rol) => (rol || 'usuario').toUpperCase();
+    const claseRol = (rol) => (rol === 'admin' ? 'badge-entrada' : 'badge-salida');
+
+    const acciones = (user) => (
+        <div style={{ display: 'inline-flex', gap: '0.4rem', flexShrink: 0 }}>
+            <button
+                onClick={(e) => { e.stopPropagation(); handleEditClick(user); }}
+                title={`Editar ${user.nombre}`}
+                aria-label={`Editar ${user.nombre}`}
+                className="btn-icono"
+                style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', color: 'var(--primary-color)' }}
+            >
+                <Pencil size={16} />
+            </button>
+            <button
+                onClick={(e) => { e.stopPropagation(); setConfirmarBorrado(user); setErrorModal(null); }}
+                title={`Eliminar ${user.nombre}`}
+                aria-label={`Eliminar ${user.nombre}`}
+                disabled={user.id === usuarioActual?.id}
+                className="btn-icono"
+                style={{
+                    background: 'rgba(239,68,68,0.1)',
+                    border: '1px solid rgba(239,68,68,0.2)',
+                    color: 'var(--danger)',
+                    opacity: user.id === usuarioActual?.id ? 0.4 : 1,
+                    cursor: user.id === usuarioActual?.id ? 'not-allowed' : 'pointer',
+                }}
+            >
+                <Trash2 size={16} />
+            </button>
+        </div>
+    );
+
+    const avatar = (nombre) => (
+        <div style={{
+            width: '38px', height: '38px', minWidth: '38px', borderRadius: '10px',
+            background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', fontWeight: 800, color: 'var(--primary-color)', flexShrink: 0,
+        }}>
+            {(nombre || '?').charAt(0).toUpperCase()}
+        </div>
+    );
+
+    const modal = (titulo, contenido, alCerrar) => (
+        <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={titulo}
+            onClick={alCerrar}
+            style={{
+                position: 'fixed', inset: 0, background: 'rgba(5,5,10,0.7)', backdropFilter: 'blur(8px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 1000, padding: 'var(--paso-2)',
+                // overflowY permite ver el formulario completo en móviles en
+                // horizontal, donde antes quedaba cortado sin posibilidad de scroll.
+                overflowY: 'auto',
+            }}
+        >
+            <div
+                className="card"
+                onClick={(e) => e.stopPropagation()}
+                style={{ width: '100%', maxWidth: '440px', padding: 'var(--paso-4) var(--paso-3)', margin: 'auto' }}
+            >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '1.25rem' }}>
+                    <h3 style={{ fontWeight: 900, margin: 0 }}>{titulo}</h3>
+                    <button onClick={alCerrar} className="btn-icono" aria-label="Cerrar" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', color: 'var(--text-main)' }}>
+                        <X size={18} />
+                    </button>
+                </div>
+                {errorModal && <div className="alerta alerta-error" role="alert">{errorModal}</div>}
+                {contenido}
+            </div>
+        </div>
+    );
+
+    if (loading) {
+        return <main className="main-content"><p>Cargando personal...</p></main>;
+    }
 
     return (
-        <div className="main-content" style={{ paddingBottom: '3rem' }}>
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1.5rem', flexWrap: 'wrap' }}>
-                <div>
-                    <h2 style={{ fontSize: '1.8rem', fontWeight: '900', letterSpacing: '-1.2px', marginBottom: '0.2rem' }}>Personal</h2>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>{usuarios.length} registros activos</p>
+        <main className="main-content" id="contenido">
+            <div className="pila-responsive" style={{ justifyContent: 'space-between', marginBottom: 'var(--paso-4)' }}>
+                <div style={{ minWidth: 0 }}>
+                    <h2 style={{ fontWeight: 900, letterSpacing: '-1.2px' }}>Personal</h2>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>
+                        {usuarios.length} registros activos
+                    </p>
                 </div>
-                
-                <div style={{ position: 'relative', flex: '1', maxWidth: '400px', minWidth: '260px' }}>
-                    <div style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.4, pointerEvents: 'none', display: 'flex' }}>
-                        <Search size={16} />
-                    </div>
-                    <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Buscar por nombre, ID o correo..."
-                        value={busqueda}
-                        onChange={e => setBusqueda(e.target.value)}
-                        style={{ paddingLeft: '3rem', borderRadius: '14px', height: '50px', background: 'rgba(0,0,0,0.2)', color: 'var(--text-main)', border: '1.5px solid var(--border)' }}
-                    />
-                </div>
+
+                <button
+                    className="btn btn-primary click-effect"
+                    onClick={() => { setFormCrear(FORM_VACIO); setErrorModal(null); setModalCrear(true); }}
+                >
+                    <UserPlus size={16} /> Nuevo usuario
+                </button>
             </div>
 
-            {/* ── DESKTOP TABLE ── */}
-            <div className="card desktop-table" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--surface)' }}>
-                <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'auto' }}>
+            {error && <div className="alerta alerta-error" role="alert">{error}</div>}
+            {aviso && <div className="alerta alerta-exito" role="status">{aviso}</div>}
+
+            <div style={{ position: 'relative', maxWidth: '480px', marginBottom: 'var(--paso-3)' }}>
+                <span style={{ position: 'absolute', left: '1.1rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.4, display: 'flex', pointerEvents: 'none' }}>
+                    <Search size={16} />
+                </span>
+                <label className="skip-link" htmlFor="buscador-usuarios">Buscar usuarios</label>
+                <input
+                    id="buscador-usuarios"
+                    type="search"
+                    className="form-control"
+                    placeholder="Buscar por nombre, cédula o correo..."
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                    style={{ paddingLeft: '3rem' }}
+                />
+            </div>
+
+            {/* Tabla en escritorio */}
+            <div className="card solo-escritorio" style={{ padding: 0, overflow: 'hidden' }}>
+                <div className="table-wrap">
+                    <table>
                         <thead>
-                            <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1.5px solid var(--border)' }}>
-                                <th style={thStyle}>Usuario</th>
-                                <th style={thStyle}>Cédula</th>
-                                <th style={thStyle}>Correo</th>
-                                <th style={{ ...thStyle, textAlign: 'center' }}>Rol</th>
-                                <th style={{ ...thStyle, textAlign: 'right' }}>Acciones</th>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Cédula</th>
+                                <th>Correo</th>
+                                <th style={{ textAlign: 'center' }}>Rol</th>
+                                <th style={{ textAlign: 'right' }}>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {usuariosFiltrados.length > 0 ? (
-                                usuariosFiltrados.map((user) => (
-                                    <tr key={user.id} className="table-row-hover" onClick={() => setViendoUser(user)} style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
-                                        {/* Nombre */}
-                                        <td style={{ padding: '1rem 1.2rem', maxWidth: '220px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                                                <div style={avatarStyle}>{(user.nombre || '?').charAt(0).toUpperCase()}</div>
-                                                <span style={{ fontWeight: '700', fontSize: '0.9rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px', display: 'block' }}>
-                                                    {user.nombre || 'Sin Nombre'}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        {/* Cédula */}
-                                        <td style={{ padding: '1rem 1.2rem', fontSize: '0.88rem', color: 'var(--text-muted)', fontWeight: '500', whiteSpace: 'nowrap' }}>{user.cedula}</td>
-                                        {/* Correo */}
-                                        <td style={{ padding: '1rem 1.2rem', fontSize: '0.88rem', color: 'var(--text-muted)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.correo}</td>
-                                        {/* Rol */}
-                                        <td style={{ padding: '1rem 1.2rem', textAlign: 'center', whiteSpace: 'nowrap' }}>
-                                            <span className={`badge ${user.rol === 'admin' ? 'badge-entrada' : 'badge-salida'}`} style={{ fontSize: '0.65rem', borderRadius: '8px' }}>
-                                                {user.rol.toUpperCase()}
+                            {usuariosFiltrados.length > 0 ? usuariosFiltrados.map((user) => (
+                                <tr key={user.id} onClick={() => setViendoUser(user)} style={{ cursor: 'pointer' }}>
+                                    <td>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', minWidth: 0 }}>
+                                            {avatar(user.nombre)}
+                                            <span className="texto-truncado" style={{ fontWeight: 700, maxWidth: '180px' }}>
+                                                {user.nombre || 'Sin nombre'}
                                             </span>
-                                        </td>
-                                        {/* Acciones */}
-                                        <td style={{ padding: '1rem 1.2rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                                            <div style={{ display: 'inline-flex', gap: '0.5rem', alignItems: 'center' }}>
-                                                <button onClick={(e) => { e.stopPropagation(); handleEditClick(user); }} title="Editar" style={editBtnStyle}
-                                                    onMouseEnter={e => e.currentTarget.style.background='rgba(99,102,241,0.25)'}
-                                                    onMouseLeave={e => e.currentTarget.style.background='rgba(99,102,241,0.1)'}>
-                                                    <Pencil size={15} />
-                                                </button>
-                                                <button onClick={(e) => { e.stopPropagation(); handleDelete(user.id); }} title="Eliminar" style={deleteBtnStyle}
-                                                    onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.25)'}
-                                                    onMouseLeave={e => e.currentTarget.style.background='rgba(239,68,68,0.1)'}>
-                                                    <Trash2 size={15} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
+                                        </div>
+                                    </td>
+                                    <td style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{user.cedula}</td>
+                                    <td style={{ color: 'var(--text-muted)', maxWidth: '220px' }}>
+                                        <span className="texto-truncado" style={{ display: 'block' }}>{user.correo}</span>
+                                    </td>
+                                    <td style={{ textAlign: 'center' }}>
+                                        <span className={`badge ${claseRol(user.rol)}`}>{rolTexto(user.rol)}</span>
+                                    </td>
+                                    <td style={{ textAlign: 'right' }}>{acciones(user)}</td>
+                                </tr>
+                            )) : (
                                 <tr>
                                     <td colSpan="5" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                        No se encontraron resultados para "{busqueda}"
+                                        No se encontraron resultados para &quot;{busqueda}&quot;
                                     </td>
                                 </tr>
                             )}
@@ -164,201 +298,164 @@ const Usuarios = () => {
                 </div>
             </div>
 
-            {/* ── MOBILE CARDS ── */}
-            <div className="mobile-cards">
-                {usuariosFiltrados.length > 0 ? (
-                    usuariosFiltrados.map((user) => (
-                        <div key={user.id} onClick={() => setViendoUser(user)} style={{
-                            background: 'var(--surface)',
-                            border: '1px solid var(--border)',
-                            borderRadius: '16px',
-                            padding: '1rem 1.2rem',
-                            marginBottom: '0.75rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.9rem',
-                            cursor: 'pointer'
-                        }}>
-                            {/* Avatar */}
-                            <div style={avatarStyle}>{(user.nombre || '?').charAt(0).toUpperCase()}</div>
-
-                            {/* Info */}
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontWeight: '700', fontSize: '0.95rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {user.nombre || 'Sin Nombre'}
-                                </div>
-                                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                    {user.cedula}
-                                </div>
-                            </div>
-
-                            {/* Rol badge */}
-                            <span className={`badge ${user.rol === 'admin' ? 'badge-entrada' : 'badge-salida'}`}
-                                style={{ fontSize: '0.6rem', borderRadius: '8px', flexShrink: 0 }}>
-                                {user.rol.toUpperCase()}
-                            </span>
-
-                            {/* Buttons — always visible, side by side */}
-                            <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
-                                <button onClick={(e) => { e.stopPropagation(); handleEditClick(user); }} title="Editar" style={editBtnStyle}
-                                    onMouseEnter={e => e.currentTarget.style.background='rgba(99,102,241,0.25)'}
-                                    onMouseLeave={e => e.currentTarget.style.background='rgba(99,102,241,0.1)'}>
-                                    <Pencil size={15} />
-                                </button>
-                                <button onClick={(e) => { e.stopPropagation(); handleDelete(user.id); }} title="Eliminar" style={deleteBtnStyle}
-                                    onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.25)'}
-                                    onMouseLeave={e => e.currentTarget.style.background='rgba(239,68,68,0.1)'}>
-                                    <Trash2 size={15} />
-                                </button>
-                            </div>
+            {/* Tarjetas en móvil */}
+            <div className="solo-movil">
+                {usuariosFiltrados.length > 0 ? usuariosFiltrados.map((user) => (
+                    <div
+                        key={user.id}
+                        onClick={() => setViendoUser(user)}
+                        style={{
+                            background: 'var(--surface)', border: '1px solid var(--border)',
+                            borderRadius: 'var(--radio-md)', padding: 'var(--paso-2)',
+                            marginBottom: '0.75rem', display: 'flex', alignItems: 'center',
+                            gap: '0.75rem', cursor: 'pointer', flexWrap: 'wrap',
+                        }}
+                    >
+                        {avatar(user.nombre)}
+                        <div style={{ flex: '1 1 120px', minWidth: 0 }}>
+                            <div className="texto-truncado" style={{ fontWeight: 700 }}>{user.nombre || 'Sin nombre'}</div>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{user.cedula}</div>
                         </div>
-                    ))
-                ) : (
-                    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                        No se encontraron resultados para "{busqueda}"
+                        <span className={`badge ${claseRol(user.rol)}`} style={{ fontSize: '0.6rem' }}>
+                            {rolTexto(user.rol)}
+                        </span>
+                        {acciones(user)}
+                    </div>
+                )) : (
+                    <div style={{ padding: '3rem 1rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        No se encontraron resultados para &quot;{busqueda}&quot;
                     </div>
                 )}
             </div>
 
-            {/* Modal editar */}
-            {modalAbierto && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1.5rem' }}>
-                    <div className="card shadow-lg" style={{ width: '100%', maxWidth: '440px', padding: '2.5rem', borderRadius: '28px', background: 'var(--surface)', border: '1px solid var(--border)', backdropFilter: 'blur(30px)' }}>
-                        <div style={{ marginBottom: '1.8rem' }}>
-                            <h3 style={{ fontSize: '1.5rem', fontWeight: '900', letterSpacing: '-0.5px', color: 'var(--text-main)' }}>Editar Perfil</h3>
-                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600' }}>Cédula: {editandoUser?.cedula}</p>
-                        </div>
-                        
-                        <div className="form-group" style={{ marginBottom: '1.2rem' }}>
-                            <label className="form-label" style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--primary-color)' }}>NOMBRE COMPLETO</label>
-                            <input className="form-control" style={{ height: '48px' }} value={editForm.nombre} onChange={e => setEditForm({...editForm, nombre: e.target.value})} />
-                        </div>
-                        
-                        <div className="form-group" style={{ marginBottom: '1.2rem' }}>
-                            <label className="form-label" style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--primary-color)' }}>CORREO ELECTRÓNICO</label>
-                            <input className="form-control" style={{ height: '48px' }} value={editForm.correo} onChange={e => setEditForm({...editForm, correo: e.target.value})} />
-                        </div>
-                        
-                        <div className="form-group">
-                            <label className="form-label" style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--primary-color)' }}>ROL DE ACCESO</label>
-                            <select className="form-control" style={{ height: '48px' }} value={editForm.rol} onChange={e => setEditForm({...editForm, rol: e.target.value})}>
-                                <option value="usuario">Usuario Estándar</option>
-                                <option value="admin">Administrador</option>
-                            </select>
-                        </div>
+            {/* Alta de usuario: completa el CRUD que exige el requisito RF-01 */}
+            {modalCrear && modal('Nuevo usuario', (
+                <form onSubmit={handleCrear}>
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="crear-cedula">Cédula</label>
+                        <input id="crear-cedula" className="form-control" inputMode="numeric" required
+                            value={formCrear.cedula} onChange={(e) => setFormCrear({ ...formCrear, cedula: e.target.value })} />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="crear-nombre">Nombre completo</label>
+                        <input id="crear-nombre" className="form-control" required
+                            value={formCrear.nombre} onChange={(e) => setFormCrear({ ...formCrear, nombre: e.target.value })} />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="crear-correo">Correo electrónico</label>
+                        <input id="crear-correo" type="email" className="form-control" required
+                            value={formCrear.correo} onChange={(e) => setFormCrear({ ...formCrear, correo: e.target.value })} />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="crear-password">Contraseña temporal</label>
+                        <input id="crear-password" type="password" className="form-control" required autoComplete="new-password"
+                            value={formCrear.password} onChange={(e) => setFormCrear({ ...formCrear, password: e.target.value })} />
+                        <span className="form-hint">Mínimo 8 caracteres, con letras y números.</span>
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="crear-rol">Rol de acceso</label>
+                        <select id="crear-rol" className="form-control"
+                            value={formCrear.rol} onChange={(e) => setFormCrear({ ...formCrear, rol: e.target.value })}>
+                            <option value="usuario">Usuario estándar</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                    <div className="pila-responsive" style={{ marginTop: 'var(--paso-3)' }}>
+                        <button type="submit" className="btn btn-primary" style={{ flex: 2 }} disabled={guardando}>
+                            {guardando ? 'Creando...' : 'Crear usuario'}
+                        </button>
+                        <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setModalCrear(false)}>
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            ), () => setModalCrear(false))}
 
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '2.5rem' }}>
-                            <button onClick={handleSaveEdit} className="btn btn-primary" style={{ flex: 2 }}>Guardar</button>
-                            <button onClick={() => setModalAbierto(false)} className="btn btn-secondary" style={{ flex: 1 }}>Salir</button>
+            {editandoUser && modal('Editar perfil', (
+                <form onSubmit={handleSaveEdit}>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                        Cédula: {editandoUser.cedula}
+                    </p>
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="edit-nombre">Nombre completo</label>
+                        <input id="edit-nombre" className="form-control" required
+                            value={editForm.nombre} onChange={(e) => setEditForm({ ...editForm, nombre: e.target.value })} />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="edit-correo">Correo electrónico</label>
+                        <input id="edit-correo" type="email" className="form-control" required
+                            value={editForm.correo} onChange={(e) => setEditForm({ ...editForm, correo: e.target.value })} />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="edit-rol">Rol de acceso</label>
+                        <select id="edit-rol" className="form-control"
+                            value={editForm.rol} onChange={(e) => setEditForm({ ...editForm, rol: e.target.value })}>
+                            <option value="usuario">Usuario estándar</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                        {editandoUser.id === usuarioActual?.id && (
+                            <span className="form-hint">No puedes quitarte tu propio rol de administrador.</span>
+                        )}
+                    </div>
+                    <div className="pila-responsive" style={{ marginTop: 'var(--paso-3)' }}>
+                        <button type="submit" className="btn btn-primary" style={{ flex: 2 }} disabled={guardando}>
+                            {guardando ? 'Guardando...' : 'Guardar'}
+                        </button>
+                        <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setEditandoUser(null)}>
+                            Salir
+                        </button>
+                    </div>
+                </form>
+            ), () => setEditandoUser(null))}
+
+            {/* Confirmación de borrado: sustituye a window.confirm, que no es
+                estilizable y en algunos navegadores móviles se bloquea. */}
+            {confirmarBorrado && modal('Eliminar usuario', (
+                <>
+                    <p style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                        Se eliminará <strong style={{ color: 'var(--text-main)' }}>{confirmarBorrado.nombre}</strong> junto
+                        con su carnet y todo su historial de accesos.
+                    </p>
+                    <p className="form-hint" style={{ marginBottom: 'var(--paso-3)' }}>Esta acción no se puede deshacer.</p>
+                    <div className="pila-responsive">
+                        <button className="btn btn-danger" style={{ flex: 2 }} onClick={handleDelete} disabled={guardando}>
+                            {guardando ? 'Eliminando...' : 'Sí, eliminar'}
+                        </button>
+                        <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setConfirmarBorrado(null)}>
+                            Cancelar
+                        </button>
+                    </div>
+                </>
+            ), () => setConfirmarBorrado(null))}
+
+            {viendoUser && modal('Detalle del usuario', (
+                <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.25rem' }}>
+                        {avatar(viendoUser.nombre)}
+                        <div style={{ minWidth: 0 }}>
+                            <h4 style={{ margin: 0, fontWeight: 900, wordBreak: 'break-word' }}>{viendoUser.nombre}</h4>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+                                Cédula: {viendoUser.cedula}
+                            </p>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* Modal de Solo Vista (Ver Detalles) */}
-            {viendoUser && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1.5rem' }} onClick={() => setViendoUser(null)}>
-                    <div className="card shadow-lg" style={{ width: '100%', maxWidth: '440px', padding: '2.5rem', borderRadius: '28px', background: 'var(--surface)', border: '1px solid var(--border)', backdropFilter: 'blur(30px)' }} onClick={e => e.stopPropagation()}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', marginBottom: '1.8rem' }}>
-                            <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', fontWeight: '800', color: 'var(--primary-color)' }}>
-                                {(viendoUser.nombre || '?').charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                                <h3 style={{ fontSize: '1.3rem', fontWeight: '900', letterSpacing: '-0.5px', color: 'var(--text-main)', margin: 0, wordBreak: 'break-word' }}>
-                                    {viendoUser.nombre}
-                                </h3>
-                                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600', margin: '0.2rem 0 0 0' }}>Cédula: {viendoUser.cedula}</p>
-                            </div>
+                    <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', borderRadius: 'var(--radio-md)', padding: 'var(--paso-2)' }}>
+                        <div style={{ marginBottom: '1rem' }}>
+                            <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary-color)' }}>CORREO ELECTRÓNICO</div>
+                            <div style={{ wordBreak: 'break-all', fontWeight: 600 }}>{viendoUser.correo}</div>
                         </div>
-                        
-                        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.2rem', marginBottom: '1.5rem' }}>
-                            <div style={{ marginBottom: '1rem' }}>
-                                <div style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--primary-color)', marginBottom: '0.3rem' }}>CORREO ELECTRÓNICO</div>
-                                <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', wordBreak: 'break-all', fontWeight: '600' }}>{viendoUser.correo}</div>
-                            </div>
-                            
-                            <div>
-                                <div style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--primary-color)', marginBottom: '0.3rem' }}>ROL DE ACCESO</div>
-                                <div>
-                                    <span className={`badge ${viendoUser.rol === 'admin' ? 'badge-entrada' : 'badge-salida'}`} style={{ fontSize: '0.75rem', borderRadius: '8px' }}>
-                                        {viendoUser.rol.toUpperCase()}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'flex', marginTop: '1.5rem' }}>
-                            <button onClick={() => setViendoUser(null)} className="btn btn-secondary" style={{ width: '100%' }}>Cerrar</button>
+                        <div>
+                            <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary-color)', marginBottom: '0.3rem' }}>ROL DE ACCESO</div>
+                            <span className={`badge ${claseRol(viendoUser.rol)}`}>{rolTexto(viendoUser.rol)}</span>
                         </div>
                     </div>
-                </div>
-            )}
-
-            <style>{`
-                .table-row-hover:hover { background-color: rgba(255,255,255,0.04); }
-
-                /* Desktop: show table, hide cards */
-                .desktop-table { display: block; }
-                .mobile-cards  { display: none; }
-
-                /* Mobile: hide table, show cards */
-                @media (max-width: 700px) {
-                    .desktop-table { display: none !important; }
-                    .mobile-cards  { display: block !important; }
-                }
-            `}</style>
-        </div>
+                    <button className="btn btn-secondary btn-block" style={{ marginTop: 'var(--paso-3)' }} onClick={() => setViendoUser(null)}>
+                        Cerrar
+                    </button>
+                </>
+            ), () => setViendoUser(null))}
+        </main>
     );
-};
-
-/* ── Shared style objects ── */
-const thStyle = {
-    padding: '1.1rem 1.2rem',
-    textAlign: 'left',
-    fontSize: '0.72rem',
-    fontWeight: '800',
-    color: 'var(--text-muted)',
-    textTransform: 'uppercase',
-    whiteSpace: 'nowrap',
-};
-
-const avatarStyle = {
-    width: '36px',
-    height: '36px',
-    minWidth: '36px',
-    borderRadius: '10px',
-    background: 'rgba(99,102,241,0.15)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '0.9rem',
-    fontWeight: '800',
-    color: 'var(--primary-color)',
-    flexShrink: 0,
-};
-
-const editBtnStyle = {
-    background: 'rgba(99,102,241,0.1)',
-    border: '1px solid rgba(99,102,241,0.2)',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    padding: '0.4rem',
-    display: 'flex',
-    alignItems: 'center',
-    color: 'var(--primary-color)',
-    transition: 'background 0.2s',
-};
-
-const deleteBtnStyle = {
-    background: 'rgba(239,68,68,0.1)',
-    border: '1px solid rgba(239,68,68,0.2)',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    padding: '0.4rem',
-    display: 'flex',
-    alignItems: 'center',
-    color: '#ef4444',
-    transition: 'background 0.2s',
 };
 
 export default Usuarios;
