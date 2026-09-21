@@ -4,6 +4,7 @@ import api from './services/api';
 import { obtenerToken, obtenerUsuario } from './services/session';
 import ErrorBoundary from './components/ErrorBoundary';
 import FondoEscena from './components/FondoEscena';
+import TransicionAmbiente from './components/TransicionAmbiente';
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -69,6 +70,9 @@ function App() {
                 {/* Fuera de <Routes> a propósito: así sobrevive a la navegación
                     y el fondo no parpadea entre pantallas. */}
                 <FondoEscena />
+                {/* Por encima del contenido: es lo que hace que la transición
+                    se perciba también en teléfono, donde el fondo queda tapado. */}
+                <TransicionAmbiente />
                 <div className="app-container">
                     <Routes>
                         <Route path="/" element={<Inicio />} />

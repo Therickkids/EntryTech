@@ -3,6 +3,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Shield, Zap, Smartphone, Lock } from 'lucide-react';
 import api, { mensajeDeError } from '../services/api';
 import { guardarSesion } from '../services/session';
+import { cerrarTransicion } from '../services/transicion';
 import StarField from '../components/StarField';
 
 const caracteristicas = [
@@ -62,10 +63,17 @@ const Login = () => {
         try {
             const res = await api.post('/login', { correo: correo.trim(), password });
             guardarSesion(res.data.token, res.data.usuario);
+
+            /*
+              Se espera a que el obturador esté cerrado ANTES de navegar. Si se
+              navegara de inmediato, el usuario vería primero la pantalla nueva
+              y solo después la animación cerrándose sobre ella, que es el
+              orden contrario al que tiene sentido.
+            */
+            await cerrarTransicion();
             navigate(res.data.usuario.rol === 'admin' ? '/dashboard' : '/carnet', { replace: true });
         } catch (err) {
             setError(mensajeDeError(err, 'Error al iniciar sesión.'));
-        } finally {
             setLoading(false);
         }
     };

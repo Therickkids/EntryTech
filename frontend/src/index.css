@@ -578,6 +578,128 @@ img, svg, video, canvas {
   }
 }
 
+/* --- OBTURADOR DE TRANSICIÓN --- */
+
+/*
+  Actúa por encima de todo el contenido. El fundido del fondo por sí solo no
+  se percibía en teléfono, donde la tarjeta de acceso tapa el centro de la
+  pantalla: el cambio ocurría detrás de un panel opaco.
+*/
+.obturador {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+  /* Sin contenido visible mientras está inactivo; los paneles ya están fuera
+     de la pantalla, pero esto evita cualquier pintado innecesario. */
+  visibility: hidden;
+}
+
+.obturador.activo {
+  visibility: visible;
+}
+
+.obturador-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* 50.2 % en lugar de 50 %: evita la línea de un píxel que asoma en el
+     centro cuando la altura de la ventana es impar y el navegador redondea. */
+  height: 50.2%;
+  background:
+    linear-gradient(180deg, #06060d 0%, #0a0a16 70%, #0d0d1c 100%);
+  will-change: transform;
+}
+
+.obturador-superior {
+  top: 0;
+  transform: translate3d(0, -100%, 0);
+  /* Curva de salida marcada al cerrar: entra con decisión y frena al final. */
+  transition: transform 520ms cubic-bezier(0.7, 0, 0.25, 1);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+}
+
+.obturador-inferior {
+  bottom: 0;
+  transform: translate3d(0, 100%, 0);
+  transition: transform 520ms cubic-bezier(0.7, 0, 0.25, 1);
+  box-shadow: 0 -18px 50px rgba(0, 0, 0, 0.6);
+}
+
+.obturador.cerrado .obturador-superior,
+.obturador.cerrado .obturador-inferior {
+  transform: translate3d(0, 0, 0);
+}
+
+/*
+  Al abrir, la curva es más suave y algo más lenta que al cerrar. Una apertura
+  con la misma curva que el cierre resulta mecánica; retirarse más despacio de
+  lo que se entró es lo que da sensación de reposo al final.
+*/
+.obturador:not(.cerrado) .obturador-superior,
+.obturador:not(.cerrado) .obturador-inferior {
+  transition: transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Línea luminosa en la juntura de los dos paneles. */
+.obturador-linea {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(560px, 82vw);
+  height: 1px;
+  transform: translate(-50%, -50%) scaleX(0.2);
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(129, 140, 248, 0.9) 25%,
+    rgba(224, 231, 255, 1) 50%,
+    rgba(129, 140, 248, 0.9) 75%,
+    transparent 100%);
+  box-shadow: 0 0 18px rgba(129, 140, 248, 0.8), 0 0 42px rgba(99, 102, 241, 0.5);
+  opacity: 0;
+  transition: opacity 260ms ease, transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.obturador.cerrado .obturador-linea {
+  opacity: 1;
+  transform: translate(-50%, -50%) scaleX(1);
+  transition-delay: 300ms, 300ms;
+}
+
+/*
+  La marca aparece un instante con el obturador cerrado. Es el único momento
+  en que la aplicación se detiene, y sirve para que el cambio se lea como algo
+  intencionado y no como una pausa de carga.
+*/
+.obturador-marca {
+  position: absolute;
+  top: calc(50% + 2.2rem);
+  left: 50%;
+  transform: translate(-50%, 8px);
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: clamp(0.72rem, 2.6vw, 0.9rem);
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: rgba(199, 210, 254, 0.85);
+  opacity: 0;
+  transition: opacity 280ms ease, transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.obturador.cerrado .obturador-marca {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  transition-delay: 380ms, 380ms;
+}
+
+/* Sin obturador cuando se pide reducir el movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  .obturador {
+    display: none;
+  }
+}
+
 /* --- CIELO PROFUNDO (pantalla de inicio) --- */
 
 /*

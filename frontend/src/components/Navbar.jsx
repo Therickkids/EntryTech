@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Users, QrCode, BookOpen, Menu, X, LogOut, AlertTriangle, CreditCard } from 'lucide-react';
 import { obtenerUsuario, cerrarSesion } from '../services/session';
+import { cerrarTransicion } from '../services/transicion';
 
 const Navbar = () => {
     const navigate = useNavigate();
@@ -38,7 +39,10 @@ const Navbar = () => {
         };
     }, [isOpen]);
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        // El obturador se cierra antes de salir, igual que al entrar: el cambio
+        // de ambiente ocurre tapado y la apertura revela ya la pantalla nueva.
+        await cerrarTransicion();
         // cerrarSesion() también vacía las cachés de Dashboard y Usuarios, que
         // antes sobrevivían al cierre de sesión dentro del mismo navegador.
         cerrarSesion();

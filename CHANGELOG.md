@@ -47,6 +47,29 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 - Nebulosas de fondo y viñeta perimetral (`.cielo-profundo`) para dar
   profundidad de cielo nocturno, más un título con resplandor.
 
+- **Obturador de transición entre ambientes** (`TransicionAmbiente.jsx`). Dos
+  paneles entran desde arriba y desde abajo, se encienden una línea luminosa y
+  la marca en la juntura, la pantalla cambia tapada y después se retiran.
+
+  Sustituye al planteamiento anterior, que solo cruzaba las dos fotografías de
+  fondo. En escritorio se apreciaba, pero **en teléfono no se veía nada**: la
+  tarjeta de acceso ocupa el centro de la pantalla y el cambio ocurría detrás
+  de un panel prácticamente opaco. Una transición de fondo no puede leerse
+  cuando el fondo está tapado, así que el obturador actúa por encima del
+  contenido.
+
+  - La navegación espera a que el obturador esté cerrado (`services/transicion.js`).
+    React Router navega de forma instantánea, de modo que disparar la animación
+    al detectar el cambio de ruta mostraría primero la pantalla nueva y solo
+    después el cierre sobre ella: el orden contrario al que tiene sentido.
+  - Cierre en 520 ms con curva de entrada marcada; apertura en 620 ms con una
+    curva más suave. Retirarse más despacio de lo que se entró es lo que da
+    sensación de reposo al final.
+  - Solo se anima `transform`. Los paneles no cambian de tamaño, se desplazan.
+  - Los paneles permanecen montados fuera de la pantalla: montarlos al cerrar
+    los colocaría ya en su posición final y no habría animación.
+  - Con `prefers-reduced-motion` no hay obturador y la navegación es directa.
+
 ### Notas técnicas
 
 - Los radios de influencia iniciales (115 px para constelaciones, 165 px para el
