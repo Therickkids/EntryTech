@@ -842,6 +842,41 @@ tr:hover td { background: rgba(255, 255, 255, 0.05); }
   align-items: center;
 }
 
+/*
+  Campo con botón adosado (ingreso manual del código en el kiosco).
+
+  Se resuelve con Grid y no reutilizando .pila-responsive: al combinar aquella
+  clase con flex-wrap: nowrap, la regla que da a los botones base del 100 % en
+  móvil dejaba el campo de texto reducido a 37 píxeles y empujaba el botón
+  fuera de la tarjeta. Con Grid cada elemento ocupa su celda y no compiten.
+*/
+.campo-con-boton {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+/* min-width: 0 evita que el contenido mínimo del input desborde su celda. */
+.campo-con-boton .form-control {
+  min-width: 0;
+}
+
+.campo-con-boton .btn {
+  width: 100%;
+}
+
+/* A partir de 520 px caben en una sola línea. */
+@media (min-width: 520px) {
+  .campo-con-boton {
+    grid-template-columns: 1fr auto;
+  }
+  .campo-con-boton .btn {
+    width: auto;
+    min-width: 130px;
+  }
+}
+
 .texto-truncado {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -890,9 +925,13 @@ tr:hover td { background: rgba(255, 255, 255, 0.05); }
 
   .card { border-radius: var(--radio-md); }
 
-  .btn { width: 100%; }
-
-  /* Cualquier fila de botones pasa a apilarse. */
+  /*
+    Las filas de botones se apilan, pero solo dentro de .pila-responsive.
+    Antes existía aquí una regla `.btn { width: 100% }` que afectaba a TODOS
+    los botones de la aplicación, incluidos los pequeños de paginación y los
+    de icono. Obligaba a anularla con estilos en línea caso por caso, que es
+    justo la práctica que provocó los fallos de adaptabilidad originales.
+  */
   .pila-responsive > .btn { flex: 1 1 100%; }
 }
 

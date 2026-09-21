@@ -287,20 +287,25 @@ const KioskSimulator = () => {
                 <label className="form-label" htmlFor="codigo-manual" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <Keyboard size={14} /> Ingreso manual del código
                 </label>
-                <div className="pila-responsive" style={{ marginTop: '0.5rem', flexWrap: 'nowrap' }}>
+                <div className="campo-con-boton">
                     <input
                         id="codigo-manual"
                         className="form-control"
-                        placeholder="QR-xxxxxxxx o NFC-xxxxxxxx"
+                        placeholder="Pega o escribe el código"
                         value={codigoManual}
                         onChange={(e) => setCodigoManual(e.target.value)}
                         disabled={procesando}
                         autoComplete="off"
+                        autoCapitalize="characters"
+                        spellCheck="false"
                     />
-                    <button type="submit" className="btn btn-primary" style={{ width: 'auto', flexShrink: 0 }} disabled={procesando || !codigoManual.trim()}>
+                    <button type="submit" className="btn btn-primary" disabled={procesando || !codigoManual.trim()}>
                         Validar
                     </button>
                 </div>
+                <span className="form-hint" style={{ display: 'block', marginTop: '0.5rem' }}>
+                    Úsalo cuando la cámara no esté disponible. El código empieza por QR- o NFC-.
+                </span>
             </form>
 
             <div className="pila-responsive" style={{ marginTop: 'var(--paso-3)' }}>
