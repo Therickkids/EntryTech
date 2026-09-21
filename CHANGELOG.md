@@ -2,6 +2,39 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [2.1.0] — 21 de septiembre de 2026
+
+### Añadido
+
+- **Campo estelar interactivo en la pantalla de inicio** (`StarField.jsx`), en
+  sustitución del fondo de partículas plano anterior:
+  - Tres capas de profundidad con paralaje: se desplazan a distinta velocidad
+    según la posición del puntero.
+  - Las estrellas se apartan al acercarse el cursor y vuelven a su sitio con
+    suavizado; las capas cercanas reaccionan más, lo que refuerza la sensación
+    de profundidad.
+  - Constelaciones entre las estrellas de la capa frontal y enlaces desde el
+    propio cursor, que además aviva las estrellas que toca.
+  - Titileo desincronizado por estrella y meteoros cada 5 a 11 segundos.
+  - Funciona con el dedo en dispositivos táctiles.
+- Nebulosas de fondo y viñeta perimetral (`.cielo-profundo`) para dar
+  profundidad de cielo nocturno, más un título con resplandor.
+
+### Notas técnicas
+
+- Los radios de influencia iniciales (115 px para constelaciones, 165 px para el
+  cursor) resultaron demasiado cortos: con la capa frontal repartida por toda la
+  pantalla casi ningún par caía dentro del radio y las líneas no llegaban a
+  dibujarse. Se ampliaron a 155 y 210 px tras comprobarlo en pantalla.
+- El estado del puntero vive en una referencia mutable, no en el estado de
+  React: de lo contrario cada movimiento del ratón provocaría un renderizado
+  completo del componente.
+- El trazado de constelaciones es de orden cuadrático, así que se limita a la
+  capa frontal. Coste medido: **0,77 ms por fotograma**, frente a los 16,7 ms
+  disponibles para mantener 60 FPS.
+- Con `prefers-reduced-motion` se dibuja un cielo fijo, sin animación ni
+  interacción.
+
 ## [2.0.1] — 21 de septiembre de 2026
 
 Correcciones detectadas al revisar la interfaz ya desplegada.

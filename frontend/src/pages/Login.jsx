@@ -1,138 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Shield, Zap, Smartphone, Lock } from 'lucide-react';
 import api, { mensajeDeError } from '../services/api';
 import { guardarSesion } from '../services/session';
-
-/**
- * Fondo de partículas.
- *
- * Correcciones respecto a la versión anterior:
- * - El lienzo se dimensionaba con window.innerWidth pero sin tener en cuenta
- *   devicePixelRatio, de modo que en pantallas retina se veía borroso.
- * - El número de partículas era fijo (60) y el cálculo de enlaces es O(n²) en
- *   cada fotograma: 1.770 comparaciones a 60 fps agotaban la batería en móviles.
- *   Ahora la cantidad depende del ancho de pantalla.
- * - No se respetaba prefers-reduced-motion.
- * - El listener de resize no estaba limitado, así que al girar el dispositivo
- *   se reconstruía el lienzo decenas de veces.
- */
-const ParticlesCanvas = () => {
-    const canvasRef = useRef(null);
-
-    useEffect(() => {
-        const reduceMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (reduceMovimiento) return undefined;
-
-        const canvas = canvasRef.current;
-        if (!canvas) return undefined;
-
-        const ctx = canvas.getContext('2d');
-        let animationId;
-        let temporizadorResize;
-        let particulas = [];
-
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-        const construir = () => {
-            const ancho = window.innerWidth;
-            const alto = window.innerHeight;
-
-            canvas.width = ancho * dpr;
-            canvas.height = alto * dpr;
-            canvas.style.width = `${ancho}px`;
-            canvas.style.height = `${alto}px`;
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-            // Densidad proporcional al área, con topes razonables.
-            const cantidad = Math.max(18, Math.min(60, Math.round((ancho * alto) / 28000)));
-
-            particulas = Array.from({ length: cantidad }, () => ({
-                x: Math.random() * ancho,
-                y: Math.random() * alto,
-                radius: Math.random() * 2 + 0.5,
-                vx: (Math.random() - 0.5) * 0.4,
-                vy: (Math.random() - 0.5) * 0.4,
-                opacity: Math.random() * 0.5 + 0.1,
-                color: Math.random() > 0.5 ? '99,102,241' : '14,165,233',
-            }));
-        };
-
-        construir();
-
-        const dibujar = () => {
-            const ancho = window.innerWidth;
-            const alto = window.innerHeight;
-            ctx.clearRect(0, 0, ancho, alto);
-
-            particulas.forEach((p) => {
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(${p.color},${p.opacity})`;
-                ctx.fill();
-            });
-
-            for (let i = 0; i < particulas.length; i += 1) {
-                for (let j = i + 1; j < particulas.length; j += 1) {
-                    const dx = particulas[i].x - particulas[j].x;
-                    const dy = particulas[i].y - particulas[j].y;
-                    // Se compara el cuadrado de la distancia para evitar una
-                    // raíz cuadrada por cada par en cada fotograma.
-                    const dist2 = dx * dx + dy * dy;
-                    if (dist2 < 14400) {
-                        const dist = Math.sqrt(dist2);
-                        ctx.beginPath();
-                        ctx.moveTo(particulas[i].x, particulas[i].y);
-                        ctx.lineTo(particulas[j].x, particulas[j].y);
-                        ctx.strokeStyle = `rgba(99,102,241,${0.08 * (1 - dist / 120)})`;
-                        ctx.lineWidth = 0.5;
-                        ctx.stroke();
-                    }
-                }
-            }
-
-            particulas.forEach((p) => {
-                p.x += p.vx;
-                p.y += p.vy;
-                if (p.x < 0 || p.x > ancho) p.vx *= -1;
-                if (p.y < 0 || p.y > alto) p.vy *= -1;
-            });
-
-            animationId = requestAnimationFrame(dibujar);
-        };
-
-        dibujar();
-
-        const alRedimensionar = () => {
-            clearTimeout(temporizadorResize);
-            temporizadorResize = setTimeout(construir, 200);
-        };
-
-        window.addEventListener('resize', alRedimensionar);
-
-        return () => {
-            cancelAnimationFrame(animationId);
-            clearTimeout(temporizadorResize);
-            window.removeEventListener('resize', alRedimensionar);
-        };
-    }, []);
-
-    return (
-        <canvas
-            ref={canvasRef}
-            aria-hidden="true"
-            style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                zIndex: 0,
-                pointerEvents: 'none',
-            }}
-        />
-    );
-};
+import StarField from '../components/StarField';
 
 const caracteristicas = [
     {
@@ -200,11 +71,12 @@ const Login = () => {
     };
 
     return (
-        <div className="auth-container" style={{ position: 'relative' }}>
-            <ParticlesCanvas />
+        <div className="auth-container cielo-profundo" style={{ position: 'relative' }}>
+            {/* Campo estelar con paralaje y constelaciones que siguen al cursor. */}
+            <StarField />
 
             {/*
-              El contenedor ya no fija flexDirection ni anchos en línea.
+              El contenedor no fija flexDirection ni anchos en línea.
               Esos estilos anulaban las media queries y eran la causa de que el
               inicio de sesión se viera en dos columnas comprimidas en el móvil.
             */}
@@ -213,18 +85,9 @@ const Login = () => {
                     <div style={{ minHeight: '70px', display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
                         {!showLock ? (
                             <h1
-                                className="animate-fade-in"
+                                className="animate-fade-in titulo-astral"
                                 onMouseLeave={() => setShowLock(true)}
-                                style={{
-                                    margin: 0,
-                                    fontFamily: 'var(--font-heading)',
-                                    background: 'linear-gradient(135deg, #fff, #818cf8)',
-                                    WebkitBackgroundClip: 'text',
-                                    backgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                    lineHeight: 1,
-                                    cursor: 'default',
-                                }}
+                                style={{ margin: 0, lineHeight: 1, cursor: 'default' }}
                             >
                                 EntryTech
                             </h1>
@@ -241,6 +104,7 @@ const Login = () => {
                                     padding: '1rem',
                                     borderRadius: '24px',
                                     border: '1px solid rgba(99, 102, 241, 0.3)',
+                                    boxShadow: '0 0 30px rgba(99,102,241,0.25)',
                                     cursor: 'pointer',
                                 }}
                             >

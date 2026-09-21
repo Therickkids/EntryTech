@@ -455,6 +455,48 @@ img, svg, video, canvas {
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
 }
 
+/* --- CIELO PROFUNDO (pantalla de inicio) --- */
+
+/*
+  Viñeta que oscurece los bordes para dar sensación de profundidad, como en una
+  fotografía astronómica. Va detrás del lienzo de estrellas: el lienzo vive
+  dentro de .app-container, que crea su propio contexto de apilamiento.
+*/
+.cielo-profundo::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 15%, rgba(76, 29, 149, 0.28), transparent 60%),
+    radial-gradient(ellipse 70% 55% at 85% 80%, rgba(14, 116, 144, 0.22), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 60% 40%, rgba(129, 78, 216, 0.14), transparent 65%);
+}
+
+/* Oscurecimiento perimetral, encima de las nebulosas. */
+.cielo-profundo::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, transparent 30%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* Título con brillo estelar. */
+.titulo-astral {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  background: linear-gradient(135deg, #ffffff 0%, #c7d2fe 45%, #818cf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  /* drop-shadow sobre texto recortado: text-shadow no funcionaría aquí,
+     porque el relleno del texto es transparente. */
+  filter: drop-shadow(0 0 22px rgba(129, 140, 248, 0.45));
+}
+
 /* --- FORMULARIOS --- */
 .form-group {
   margin-bottom: 1.25rem;
