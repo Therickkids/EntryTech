@@ -400,13 +400,35 @@ img, svg, video, canvas {
 }
 
 /*
-  En una sola columna el formulario debe verse primero: con la presentación
-  arriba había que desplazarse casi una pantalla completa para llegar a los
-  campos de acceso. `order` solo tiene efecto mientras la rejilla está apilada.
+  En teléfono se muestra únicamente la tarjeta de acceso.
+
+  La columna de presentación se probó primero debajo del formulario, pero el
+  resultado era peor: la marca "EntryTech" aparecía dos veces (en la tarjeta y
+  en el titular), el documento crecía hasta 1,37 pantallas de desplazamiento y
+  la fotografía de fondo quedaba tapada. En una pantalla de acceso desde el
+  móvil el usuario viene a entrar, no a leer la propuesta de valor: ese
+  contenido se conserva en escritorio, donde sí hay sitio para él.
 */
 @media (max-width: 899px) {
-  .auth-card { order: -1; }
-  .auth-intro h2 { margin-top: 0.5rem; }
+  .auth-intro { display: none; }
+
+  .auth-container {
+    /* Márgenes generosos arriba y abajo: dejan respirar la fotografía y
+       evitan que la tarjeta parezca pegada a los bordes. */
+    padding-top: clamp(2rem, 9vh, 5rem);
+    padding-bottom: clamp(2rem, 9vh, 5rem);
+  }
+
+  .auth-card {
+    max-width: 400px;
+    padding: var(--paso-4) var(--paso-3);
+    /* Más desenfoque que en escritorio: separa la tarjeta de una fotografía
+       con mucho detalle y mantiene legible el formulario. */
+    backdrop-filter: blur(24px) saturate(1.1);
+    -webkit-backdrop-filter: blur(24px) saturate(1.1);
+    background: rgba(12, 12, 18, 0.72);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.06);
+  }
 }
 
 .intro-feature {
@@ -1068,13 +1090,26 @@ tr:hover td { background: rgba(255, 255, 255, 0.05); }
   :root { --ancho-contenido: 1320px; }
 }
 
-/* Modo horizontal en móvil: la altura útil es mínima. */
+/*
+  Modo horizontal en móvil: con 360 px de alto útil, la tarjeta de acceso no
+  cabe entera y siempre quedará algo de desplazamiento. Se comprime todo lo
+  razonable para que ese recorrido sea mínimo, sin llegar a apretar los campos
+  por debajo del tamaño táctil cómodo.
+*/
 @media (max-height: 520px) and (orientation: landscape) {
   .auth-container {
     align-items: flex-start;
     padding-top: var(--paso-2);
     padding-bottom: var(--paso-2);
   }
+
+  .auth-card {
+    padding-top: var(--paso-3);
+    padding-bottom: var(--paso-3);
+  }
+
+  .form-group { margin-bottom: 0.9rem; }
+
   .sidebar { padding-top: var(--paso-2); }
 }
 
