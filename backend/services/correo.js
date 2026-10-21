@@ -54,9 +54,19 @@ export const enviarCorreo = async ({ para, nombreDestino, asunto, html, texto })
         });
 
         if (!respuesta.ok) {
-            // El cuerpo de error de Brevo puede contener la dirección del
-            // destinatario: se registra el código, nunca el contenido.
-            console.error('Fallo al enviar correo. Estado:', respuesta.status);
+            /*
+              Se registra el código y una pista de la causa, pero nunca el
+              cuerpo completo: puede contener la dirección del destinatario.
+              Un 401 desconcierta porque la clave «se ve» correcta, de ahí
+              que convenga nombrar las causas habituales en el propio registro.
+            */
+            const pistas = {
+                401: 'clave de API inválida, sin permisos o pegada con espacios',
+                403: 'cuenta sin permiso para enviar; revisa la verificación del teléfono',
+                400: 'remitente no verificado o distinto de MAIL_FROM_EMAIL',
+            };
+            const pista = pistas[respuesta.status] || 'consulta los registros de Brevo';
+            console.error(`Fallo al enviar correo. Estado: ${respuesta.status} (${pista})`);
             return { enviado: false, motivo: `http-${respuesta.status}` };
         }
 

@@ -53,9 +53,15 @@ const config = {
       deshabilitada y lo indica de forma explícita, en lugar de fingir que el
       correo salió.
     */
-    brevoApiKey: process.env.BREVO_API_KEY || '',
-    mailFromEmail: process.env.MAIL_FROM_EMAIL || '',
-    mailFromNombre: process.env.MAIL_FROM_NOMBRE || 'EntryTech',
+    /*
+      Se recortan los espacios: al pegar una clave en el panel de la
+      plataforma es fácil arrastrar un espacio o un salto de línea invisible,
+      y el proveedor responde 401 sin explicar por qué. Es un fallo
+      desconcertante porque la clave «se ve» correcta.
+    */
+    brevoApiKey: (process.env.BREVO_API_KEY || '').trim(),
+    mailFromEmail: (process.env.MAIL_FROM_EMAIL || '').trim(),
+    mailFromNombre: (process.env.MAIL_FROM_NOMBRE || 'EntryTech').trim(),
 
     // Dirección pública del frontend: es la base del enlace del correo.
     appUrl: process.env.APP_URL || 'https://entry-tech.vercel.app',
