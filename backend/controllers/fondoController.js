@@ -29,6 +29,39 @@ import config from '../config/env.js';
 
 const MS_REINTENTO = 10 * 60 * 1000;
 
+/**
+ * Decide si una publicación de APOD puede usarse como fondo.
+ *
+ * Función pura y exportada para poder probar el criterio legal sin red: es la
+ * pieza que evita incorporar al sitio una fotografía con derechos de terceros.
+ *
+ * @param {object} apod Respuesta de la API de APOD.
+ * @returns {object} Decisión con origen 'apod' o 'local' y, en el segundo caso, el motivo.
+ */
+export const evaluarApod = (apod) => {
+    if (!apod || typeof apod !== 'object') {
+        return { origen: 'local', motivo: 'respuesta-invalida' };
+    }
+    if (apod.media_type !== 'image') {
+        return { origen: 'local', motivo: 'no-es-imagen' };
+    }
+    if (apod.copyright) {
+        return { origen: 'local', motivo: 'con-derechos-de-autor' };
+    }
+    if (!apod.url) {
+        return { origen: 'local', motivo: 'sin-url' };
+    }
+    return {
+        origen: 'apod',
+        // `url` pesa bastante menos que `hdurl` y a pantalla completa, bajo el
+        // velo oscuro, la diferencia no se aprecia.
+        url: apod.url,
+        titulo: apod.title || null,
+        fecha: apod.date || null,
+        credito: 'NASA · Imagen Astronómica del Día',
+    };
+};
+
 let cache = { clave: null, datos: null, expiraEn: 0 };
 
 const fechaDeHoy = () => new Date().toISOString().slice(0, 10);
@@ -68,25 +101,9 @@ export const getFondo = async (req, res) => {
 
         const apod = await respuesta.json();
 
-        if (apod.media_type !== 'image') {
-            return guardar({ origen: 'local', motivo: 'no-es-imagen' }, hastaMedianoche());
-        }
-        if (apod.copyright) {
-            return guardar({ origen: 'local', motivo: 'con-derechos-de-autor' }, hastaMedianoche());
-        }
-        if (!apod.url) {
-            return guardar({ origen: 'local', motivo: 'sin-url' }, hastaMedianoche());
-        }
-
-        return guardar({
-            origen: 'apod',
-            // `url` pesa bastante menos que `hdurl` y a pantalla completa, bajo
-            // el velo oscuro, la diferencia no se aprecia.
-            url: apod.url,
-            titulo: apod.title || null,
-            fecha: apod.date || hoy,
-            credito: 'NASA · Imagen Astronómica del Día',
-        }, hastaMedianoche());
+        const decision = evaluarApod(apod);
+        if (!decision.fecha && decision.origen === 'apod') decision.fecha = hoy;
+        return guardar(decision, hastaMedianoche());
     } catch (error) {
         const motivo = error?.name === 'TimeoutError' ? 'tiempo-agotado' : 'sin-conexion';
         // El fallo se cachea poco tiempo: puede ser transitorio.

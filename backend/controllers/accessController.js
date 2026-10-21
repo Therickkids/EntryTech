@@ -4,6 +4,19 @@ import pool from '../config/db.js';
 const generarCodigoQr = () => `QR-${crypto.randomBytes(12).toString('base64url')}`;
 
 /**
+ * Regla Anti-Passback: decide si el siguiente movimiento es entrada o salida.
+ *
+ * Se mantiene como función pura y exportada para poder probarla sin base de
+ * datos. Cualquier valor distinto de 'entrada' se trata como «está fuera»:
+ * antes, un tipo inesperado dejaba el nuevo tipo sin definir y el INSERT
+ * fallaba con un error poco claro.
+ *
+ * @param {string|null} ultimoTipo Último movimiento registrado, o null si no hay.
+ * @returns {'entrada'|'salida'}
+ */
+export const decidirTipoAcceso = (ultimoTipo) => (ultimoTipo === 'entrada' ? 'salida' : 'entrada');
+
+/**
  * Registra una entrada o salida a partir del código del carnet (NFC o QR).
  *
  * Toda la operación se ejecuta dentro de una transacción con bloqueo de fila.
@@ -57,10 +70,7 @@ export const registrarAcceso = async (req, res) => {
         );
 
         const ultimoTipo = ultimoAcceso.rows[0]?.tipo ?? null;
-        // Cualquier valor distinto de 'entrada' se trata como "está fuera".
-        // Antes, un tipo inesperado dejaba nuevoTipo en undefined y el INSERT
-        // fallaba con un error 500 poco claro.
-        const nuevoTipo = ultimoTipo === 'entrada' ? 'salida' : 'entrada';
+        const nuevoTipo = decidirTipoAcceso(ultimoTipo);
 
         const insertado = await cliente.query(
             'INSERT INTO accesos (usuario_id, tipo) VALUES ($1, $2) RETURNING id, fecha',

@@ -1,0 +1,62 @@
+name: Integración continua
+
+# Se ejecuta en cada push a main y en cada pull request. El objetivo es que un
+# cambio que rompa las pruebas o la compilación se detecte aquí y no en el
+# despliegue, que es donde se notaba hasta ahora.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend · pruebas y auditoría
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # La misma versión que usa Render, para que un fallo dependiente de
+          # la versión aparezca aquí y no en producción.
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      # npm ci, y no npm install: falla si el package-lock no concuerda con el
+      # package.json, que es justo lo que romperia el despliegue.
+      - run: npm ci
+
+      - name: Pruebas
+        run: npm test
+
+      - name: Auditoría de dependencias
+        # Las de severidad baja no detienen la entrega; de media hacia arriba sí.
+        run: npm audit --audit-level=moderate
+
+  frontend:
+    name: Frontend · compilación y auditoría
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      - name: Compilación de producción
+        run: npm run build
+
+      - name: Auditoría de dependencias
+        run: npm audit --audit-level=moderate

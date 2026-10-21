@@ -2,6 +2,43 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [2.3.0] — 21 de octubre de 2026
+
+### Añadido
+
+- **Pruebas automatizadas** con el ejecutor incorporado de Node (`node --test`),
+  sin ninguna dependencia nueva. **41 pruebas**, todas en verde:
+  - `validators`: formato de correo y cédula, longitud de nombre, política de
+    contraseña y normalización de entrada.
+  - `reglasNegocio`: la regla Anti-Passback y el filtro de derechos de autor de
+    la Imagen Astronómica del Día.
+  - `rateLimit`: conteo por IP y por endpoint, código 429, cabecera
+    `Retry-After`, expiración de la ventana y lectura de `X-Forwarded-For`.
+  - `authMiddleware`: token ausente, sin esquema, manipulado, caducado y
+    válido; permisos de administrador; y las tres vías del terminal de kiosco.
+- **Integración continua** en GitHub Actions. En cada push y cada pull request
+  se instala con `npm ci`, se ejecutan las pruebas, se compila el frontend y se
+  audita en ambos proyectos. El backend usa Node 24, la misma versión que
+  Render, para que un fallo dependiente de la versión aparezca ahí y no en
+  producción.
+- Script `npm test` en el backend.
+
+### Cambiado
+
+Dos reglas de negocio se extrajeron a funciones puras y exportadas, para poder
+probarlas sin base de datos ni red. El comportamiento no cambia:
+
+- `decidirTipoAcceso` en `accessController`: la regla Anti-Passback.
+- `evaluarApod` en `fondoController`: el criterio que impide incorporar al
+  sitio una fotografía con derechos de terceros.
+
+### Nota
+
+La primera ejecución dejó una prueba en rojo, y el fallo estaba en la prueba:
+afirmaba que un correo de 100 caracteres debía rechazarse, cuando 100 es
+exactamente el límite admitido. Corregida a 101. Sirve de recordatorio de que
+una prueba que falla no siempre acusa al código.
+
 ## [2.2.0] — 21 de octubre de 2026
 
 Actualización de dependencias. La compilación de Render reportaba 6
