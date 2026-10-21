@@ -2,6 +2,74 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [2.1.1] — 21 de octubre de 2026
+
+Corrección de los hallazgos de un análisis pasivo ZAP (HostedScan) sobre
+`https://entry-tech.vercel.app/login`.
+
+### Seguridad
+
+Los hallazgos eran del **frontend en Vercel**, no del backend. Las cabeceras de
+seguridad se habían implementado en Express, pero Vercel sirve archivos
+estáticos y no pasa por ese código: no enviaba ninguna.
+
+- **Cross-Domain Misconfiguration (medio).** Vercel añade por defecto
+  `Access-Control-Allow-Origin: *` a los archivos estáticos. Se sustituye por el
+  origen propio del sitio. Nada consulta estos archivos desde otro dominio, así
+  que el comodín no aportaba nada y abría la puerta a lecturas cruzadas.
+- **Missing Anti-Clickjacking Header (medio).** Se añaden `X-Frame-Options: DENY`
+  y `frame-ancestors 'none'` en la CSP. El segundo es el mecanismo vigente; el
+  primero se mantiene por compatibilidad con navegadores antiguos.
+- **Content Security Policy Header Not Set (medio).** Se añade una política
+  restrictiva, detallada más abajo.
+- **X-Content-Type-Options Header Missing (bajo).** Se añade `nosniff`.
+- **Strict-Transport-Security Header Not Set (bajo).** Ya estaba presente en la
+  respuesta de Vercel al verificarlo (`max-age=63072000; includeSubDomains;
+  preload`). Se declara igualmente de forma explícita para no depender de un
+  comportamiento por defecto de la plataforma.
+
+Cabeceras adicionales no incluidas en el informe:
+
+- `Referrer-Policy: no-referrer`
+- `Cross-Origin-Opener-Policy: same-origin`
+- `X-Permitted-Cross-Domain-Policies: none`
+- `Permissions-Policy: camera=(self), microphone=(), geolocation=(), payment=(),
+  usb=(), interest-cohort=()`. La cámara se mantiene permitida en el propio
+  origen porque el simulador de kiosco la necesita para leer los códigos QR:
+  una política más estricta habría dejado esa pantalla inservible.
+
+### Sobre la política de contenidos
+
+`script-src 'self'` sin excepciones: la compilación de Vite no genera ningún
+script en línea, de modo que no hace falta `'unsafe-inline'` ni *hashes*.
+
+`style-src` sí incluye `'unsafe-inline'`, y conviene explicar por qué. La
+interfaz usa atributos `style` de React en doce archivos, y esos atributos
+quedan bloqueados sin esa excepción. La alternativa precisa, `style-src-attr`,
+no tiene soporte uniforme entre navegadores: en los que la ignoran, la
+aplicación se vería sin estilos. Se asume la excepción porque el riesgo de los
+estilos en línea es muy inferior al de los scripts. Eliminarla exigiría trasladar
+todos esos atributos a clases CSS, que queda anotado como mejora pendiente.
+
+Orígenes permitidos: `fonts.googleapis.com` y `fonts.gstatic.com` para la
+tipografía, `apod.nasa.gov` para el fondo diario, `data:` para las fotografías de
+perfil en Base64 y el backend de Render para las llamadas a la API.
+
+### Backend
+
+Se añaden `Content-Security-Policy: default-src 'none'; frame-ancestors 'none';
+base-uri 'none'` y `X-Permitted-Cross-Domain-Policies: none`. La API solo
+devuelve JSON, no carga recursos ni se renderiza, así que la política más
+estricta posible es también la correcta.
+
+### Verificación
+
+La configuración se probó antes de publicar, sirviendo la compilación de
+producción desde un servidor local que aplica las cabeceras reales del
+`vercel.json`. Sin violaciones de CSP en consola; tipografías, imágenes de fondo
+y llamadas a la API funcionando; y `featurePolicy.allowsFeature('camera')`
+devolviendo permitido, con micrófono, ubicación y pagos bloqueados.
+
 ## [2.1.0] — 21 de septiembre de 2026
 
 ### Cambiado

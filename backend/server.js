@@ -20,6 +20,13 @@ app.use((req, res, next) => {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+    res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+    /*
+      Esta API solo devuelve JSON: no carga recursos ni se renderiza en un
+      navegador, asi que la politica mas estricta posible es tambien la
+      correcta. Sin ella, un analisis pasivo la reporta como ausente.
+    */
+    res.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
     if (config.isProduction) {
         res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     }
