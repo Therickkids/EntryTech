@@ -86,6 +86,14 @@ app.use((err, req, res, next) => {
     if (err && err.type === 'entity.too.large') {
         return res.status(413).json({ mensaje: 'El contenido enviado es demasiado grande.' });
     }
+    /*
+      Cuerpo JSON malformado. Sin esta rama caia en el 500 generico, que
+      atribuye al servidor un error que es del cliente y, de paso, ensucia los
+      registros con fallos que no lo son.
+    */
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        return res.status(400).json({ mensaje: 'El cuerpo de la peticion no es JSON valido.' });
+    }
     console.error('❌ Error no controlado:', err);
     return res.status(500).json({ mensaje: 'Error interno del servidor.' });
 });

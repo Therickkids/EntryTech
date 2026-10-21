@@ -49,16 +49,23 @@ const Navbar = () => {
         navigate('/login', { replace: true });
     };
 
+    /*
+      El simulador de kiosco es el terminal de control, no una función de
+      empleado: desde él se registra la entrada o la salida de cualquiera que
+      presente un código. Por eso figura solo para administradores, igual que
+      el panel y la gestión de personal. La ruta además está protegida en el
+      enrutador, de modo que ocultar el enlace no es la única barrera.
+    */
     const navLinks = [
         { path: '/carnet', label: 'Mi carnet', icon: <CreditCard size={18} /> },
-        { path: '/simulador', label: 'Simulador', icon: <QrCode size={18} /> },
         { path: '/manual', label: 'Manual de usuario', icon: <BookOpen size={18} /> },
     ];
 
     if (usuario.rol === 'admin') {
         navLinks.unshift(
             { path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-            { path: '/usuarios', label: 'Gestión de usuarios', icon: <Users size={18} /> }
+            { path: '/usuarios', label: 'Gestión de usuarios', icon: <Users size={18} /> },
+            { path: '/simulador', label: 'Simulador', icon: <QrCode size={18} /> }
         );
     }
 

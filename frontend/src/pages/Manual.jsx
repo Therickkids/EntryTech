@@ -1,5 +1,6 @@
 import React from 'react';
 import './Manual.css';
+import { esAdmin } from '../services/session';
 
 /*
   Manual de usuario.
@@ -7,10 +8,16 @@ import './Manual.css';
   el acceso se hace con el correo electrónico (no con el número de
   identificación) y la creación de usuarios se realiza desde el botón
   "Nuevo usuario" del módulo de personal, que antes ni siquiera existía.
+
+  Las secciones marcadas con soloAdmin describen pantallas restringidas al
+  administrador. Mostrarlas a un empleado no era un fallo de permisos, pero
+  sí divulgaba el funcionamiento interno del control de acceso a quien no
+  tiene por qué conocerlo, empezando por cómo opera el terminal de kiosco.
+  La numeración se calcula al mostrar, para que no queden huecos.
 */
 const secciones = [
     {
-        titulo: '1. Inicio de sesión',
+        titulo: 'Inicio de sesión',
         contenido: (
             <p>
                 Ingresa con tu <strong>correo electrónico</strong> y tu contraseña. El sistema
@@ -21,7 +28,8 @@ const secciones = [
         ),
     },
     {
-        titulo: '2. Dashboard (panel de control)',
+        titulo: 'Dashboard (panel de control)',
+        soloAdmin: true,
         contenido: (
             <>
                 <p>Disponible solo para administradores. Desde aquí puedes:</p>
@@ -35,7 +43,8 @@ const secciones = [
         ),
     },
     {
-        titulo: '3. Gestión de usuarios',
+        titulo: 'Gestión de usuarios',
+        soloAdmin: true,
         contenido: (
             <>
                 <p>En el módulo de personal, un administrador puede:</p>
@@ -53,7 +62,7 @@ const secciones = [
         ),
     },
     {
-        titulo: '4. Carnet digital',
+        titulo: 'Carnet digital',
         contenido: (
             <p>
                 Tu identificación personal. Muestra nombre, documento, correo y un código QR que
@@ -63,7 +72,8 @@ const secciones = [
         ),
     },
     {
-        titulo: '5. Simulador de kiosco',
+        titulo: 'Simulador de kiosco',
+        soloAdmin: true,
         contenido: (
             <p>
                 Simula el terminal de acceso. Escanea el QR con la cámara o escribe el código a
@@ -73,7 +83,7 @@ const secciones = [
         ),
     },
     {
-        titulo: '6. Seguridad y datos personales',
+        titulo: 'Seguridad y datos personales',
         contenido: (
             <>
                 <p>
@@ -90,27 +100,32 @@ const secciones = [
     },
 ];
 
-const Manual = () => (
-    <main className="manual-container main-content" id="contenido">
-        <div className="manual-card">
-            <h1>Manual de usuario · EntryTech</h1>
-            <p className="manual-intro">
-                Guía de uso del sistema de control de acceso. Cada sección corresponde a una
-                pantalla de la aplicación.
-            </p>
+const Manual = () => {
+    // Un empleado solo ve las secciones de las pantallas a las que accede.
+    const visibles = secciones.filter((s) => !s.soloAdmin || esAdmin());
 
-            {secciones.map((s) => (
-                <section className="manual-section" key={s.titulo}>
-                    <h2>{s.titulo}</h2>
-                    {s.contenido}
-                </section>
-            ))}
+    return (
+        <main className="manual-container main-content" id="contenido">
+            <div className="manual-card">
+                <h1>Manual de usuario · EntryTech</h1>
+                <p className="manual-intro">
+                    Guía de uso del sistema de control de acceso. Cada sección corresponde a una
+                    pantalla de la aplicación.
+                </p>
 
-            <div className="manual-footer">
-                <p>© 2026 EntryTech · Institución Universitaria Pascual Bravo</p>
+                {visibles.map((s, i) => (
+                    <section className="manual-section" key={s.titulo}>
+                        <h2>{`${i + 1}. ${s.titulo}`}</h2>
+                        {s.contenido}
+                    </section>
+                ))}
+
+                <div className="manual-footer">
+                    <p>© 2026 EntryTech · Institución Universitaria Pascual Bravo</p>
+                </div>
             </div>
-        </div>
-    </main>
-);
+        </main>
+    );
+};
 
 export default Manual;

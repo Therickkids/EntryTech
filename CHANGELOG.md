@@ -2,6 +2,60 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [2.1.2] — 21 de octubre de 2026
+
+### Seguridad
+
+- **El simulador de kiosco queda restringido a administradores.** Cualquier
+  empleado podía abrir el terminal de control y registrar la entrada o la
+  salida de otra persona con solo conocer un código de carnet. Se corrige en
+  los dos niveles:
+  - La ruta `/simulador` pasa de `PrivateRoute` a `AdminRoute`, y el enlace
+    desaparece del menú de los empleados.
+  - `POST /api/acceso` exige rol de administrador cuando la autenticación es
+    por sesión. Sin este cambio, ocultar el enlace habría sido una barrera
+    puramente visual: bastaba con escribir la dirección o llamar a la API.
+  - Un terminal físico permanente no debería usar la sesión de una persona;
+    para eso sigue estando `KIOSK_API_KEY`.
+
+- **El manual de usuario se filtra por rol.** Describía el panel de
+  administración, la gestión de personal y el funcionamiento del terminal a
+  todo el que lo abriera. No era un fallo de permisos, pero divulgaba el
+  funcionamiento interno del control de acceso a quien no tiene por qué
+  conocerlo. Las secciones restringidas se marcan con `soloAdmin` y la
+  numeración se calcula al mostrar, para que un empleado vea 1, 2 y 3 y no
+  queden huecos.
+
+### Corregido
+
+- **Una base de datos inaccesible tumbaba toda la API.** En tres controladores
+  `pool.connect()` se llamaba fuera del `try`. Si el pool no podía entregar un
+  cliente, el rechazo escapaba del manejador; Express 4 no captura errores
+  asíncronos, Node lo trataba como rechazo no gestionado y terminaba el
+  proceso. Una indisponibilidad momentánea de la base de datos dejaba el
+  servicio caído en lugar de devolver un error a esa única petición.
+
+  Se descubrió por accidente, al fallar una prueba de permisos: el servidor
+  moría en mitad del intento. Verificado tras la corrección: con la base de
+  datos caída, `/api/acceso` devuelve 500 y `/api/ping` sigue respondiendo 200.
+
+- **Un cuerpo JSON malformado devolvía 500.** Correspondía un 400: el error es
+  del cliente, no del servidor, y además ensuciaba los registros con fallos que
+  no lo eran.
+
+### Verificación
+
+| Prueba | Resultado |
+|---|---|
+| `POST /api/acceso` con rol usuario | 403 |
+| `POST /api/acceso` con rol admin | 500 (pasa permisos; sin base de datos en la prueba) |
+| Cuerpo JSON inválido | 400 |
+| `/api/ping` tras el fallo de base de datos | 200, el proceso sobrevive |
+| Manual como empleado | 3 secciones, numeradas 1 a 3 |
+| Manual como administrador | 6 secciones |
+| Menú como empleado | Mi carnet, Manual de usuario |
+| `/simulador`, `/dashboard`, `/usuarios` como empleado | Redirigen a `/carnet` |
+
 ## [2.1.1] — 21 de octubre de 2026
 
 Corrección de los hallazgos de un análisis pasivo ZAP (HostedScan) sobre

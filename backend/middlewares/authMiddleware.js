@@ -51,7 +51,26 @@ export const verifyKiosk = (req, res, next) => {
 
     if (esquema === 'Bearer' && token) {
         try {
-            req.user = jwt.verify(token, config.jwtSecret);
+            const datos = jwt.verify(token, config.jwtSecret);
+
+            /*
+              Solo un administrador puede operar el terminal con su sesión.
+              Antes bastaba con estar autenticado, de modo que cualquier
+              empleado podía registrar entradas y salidas de otras personas con
+              solo conocer un código de carnet. La pantalla del simulador ya es
+              exclusiva de administradores; sin esta comprobación, ocultar el
+              enlace habría sido una barrera puramente visual.
+
+              Un terminal físico permanente no debería usar la sesión de una
+              persona: para eso existe KIOSK_API_KEY.
+            */
+            if (datos.rol !== 'admin') {
+                return res.status(403).json({
+                    mensaje: 'Solo un administrador puede operar el terminal de acceso.',
+                });
+            }
+
+            req.user = datos;
             return next();
         } catch {
             return res.status(401).json({ mensaje: 'Sesión inválida o expirada.' });

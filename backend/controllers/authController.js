@@ -46,9 +46,18 @@ export const register = async (req, res) => {
         return res.status(400).json({ mensaje: errorPassword });
     }
 
-    const cliente = await pool.connect();
+    let cliente;
 
+    /*
+      La conexión se pide DENTRO del try. Estaba fuera, y ahí un rechazo de
+      pool.connect() —base de datos caída, red cortada o pool agotado— escapa
+      del manejador: Express 4 no captura errores asíncronos, Node lo trata
+      como rechazo no gestionado y termina el proceso. Una indisponibilidad
+      momentánea de la base de datos tumbaba toda la API en lugar de devolver
+      un error a esa única petición.
+    */
     try {
+        cliente = await pool.connect();
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
         /**
@@ -83,7 +92,7 @@ export const register = async (req, res) => {
             usuario: nuevoUsuario,
         });
     } catch (error) {
-        await cliente.query('ROLLBACK').catch(() => {});
+        if (cliente) await cliente.query('ROLLBACK').catch(() => {});
 
         // 23505 = violación de restricción UNIQUE. Se delega en la base de datos
         // en lugar de hacer un SELECT previo, que dejaba una ventana de carrera
@@ -98,7 +107,7 @@ export const register = async (req, res) => {
         // restricciones internas de PostgreSQL al cliente.
         return res.status(500).json({ mensaje: 'Error interno del servidor.' });
     } finally {
-        cliente.release();
+        if (cliente) cliente.release();
     }
 };
 
@@ -206,9 +215,18 @@ export const crearUsuario = async (req, res) => {
         return res.status(400).json({ mensaje: errorPassword });
     }
 
-    const cliente = await pool.connect();
+    let cliente;
 
+    /*
+      La conexión se pide DENTRO del try. Estaba fuera, y ahí un rechazo de
+      pool.connect() —base de datos caída, red cortada o pool agotado— escapa
+      del manejador: Express 4 no captura errores asíncronos, Node lo trata
+      como rechazo no gestionado y termina el proceso. Una indisponibilidad
+      momentánea de la base de datos tumbaba toda la API en lugar de devolver
+      un error a esa única petición.
+    */
     try {
+        cliente = await pool.connect();
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
         await cliente.query('BEGIN');
@@ -230,7 +248,7 @@ export const crearUsuario = async (req, res) => {
 
         return res.status(201).json({ mensaje: 'Usuario creado correctamente.', usuario: nuevoUsuario });
     } catch (error) {
-        await cliente.query('ROLLBACK').catch(() => {});
+        if (cliente) await cliente.query('ROLLBACK').catch(() => {});
 
         if (error.code === '23505') {
             const campo = /cedula/.test(error.constraint || '') ? 'La cédula' : 'El correo';
@@ -240,7 +258,7 @@ export const crearUsuario = async (req, res) => {
         console.error('Error en crearUsuario:', error);
         return res.status(500).json({ mensaje: 'Error al crear el usuario.' });
     } finally {
-        cliente.release();
+        if (cliente) cliente.release();
     }
 };
 

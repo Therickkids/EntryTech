@@ -84,7 +84,7 @@ function App() {
                         <Route path="/usuarios" element={<AdminRoute><ConNavbar><Usuarios /></ConNavbar></AdminRoute>} />
 
                         <Route path="/carnet" element={<PrivateRoute><ConNavbar><Carnet /></ConNavbar></PrivateRoute>} />
-                        <Route path="/simulador" element={<PrivateRoute><ConNavbar><KioskSimulator /></ConNavbar></PrivateRoute>} />
+                        <Route path="/simulador" element={<AdminRoute><ConNavbar><KioskSimulator /></ConNavbar></AdminRoute>} />
                         <Route path="/manual" element={<PrivateRoute><ConNavbar><Manual /></ConNavbar></PrivateRoute>} />
 
                         <Route path="*" element={<NoEncontrada />} />

@@ -20,9 +20,18 @@ export const registrarAcceso = async (req, res) => {
         return res.status(400).json({ mensaje: 'Falta proveer un código de carnet válido (NFC o QR).' });
     }
 
-    const cliente = await pool.connect();
+    let cliente;
 
+    /*
+      La conexión se pide DENTRO del try. Estaba fuera, y ahí un rechazo de
+      pool.connect() —base de datos caída, red cortada o pool agotado— escapa
+      del manejador: Express 4 no captura errores asíncronos, Node lo trata
+      como rechazo no gestionado y termina el proceso. Una indisponibilidad
+      momentánea de la base de datos tumbaba toda la API en lugar de devolver
+      un error a esa única petición.
+    */
     try {
+        cliente = await pool.connect();
         await cliente.query('BEGIN');
 
         // FOR UPDATE bloquea la fila del carnet hasta el COMMIT.
@@ -79,11 +88,11 @@ export const registrarAcceso = async (req, res) => {
             usuario: { id: usuarioId, nombre, cedula },
         });
     } catch (error) {
-        await cliente.query('ROLLBACK').catch(() => {});
+        if (cliente) await cliente.query('ROLLBACK').catch(() => {});
         console.error('Error en registrarAcceso:', error);
         return res.status(500).json({ mensaje: 'Error al registrar el acceso.' });
     } finally {
-        cliente.release();
+        if (cliente) cliente.release();
     }
 };
 
