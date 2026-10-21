@@ -2,6 +2,32 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [2.1.3] — 21 de octubre de 2026
+
+### Seguridad
+
+- **`POST /api/acceso` dejaba pasar peticiones anónimas.** La restricción por
+  rol de la versión anterior solo actuaba cuando se presentaba un token. Sin
+  ninguna credencial, un camino heredado dejaba seguir adelante: estaba
+  pensado para no romper terminales físicos ya desplegados cuando
+  `KIOSK_API_KEY` no estuviera configurada.
+
+  En la práctica significaba que cualquiera en internet podía registrar
+  entradas y salidas con solo conocer un código de carnet. **Comprobado contra
+  el despliegue real**: una petición sin autenticar llegaba al controlador y
+  devolvía 404 por código inexistente, no 401 por falta de permiso.
+
+  El valor por defecto pasa a ser denegar. Un terminal físico se autentica con
+  `KIOSK_API_KEY`; el simulador web, con la sesión del administrador.
+
+### Verificación
+
+| Petición a `/api/acceso` | Antes | Ahora |
+|---|---|---|
+| Sin credencial | Pasaba al controlador | 401 |
+| Token de rol usuario | 403 | 403 |
+| Token de rol administrador | Pasa | Pasa |
+
 ## [2.1.2] — 21 de octubre de 2026
 
 ### Seguridad

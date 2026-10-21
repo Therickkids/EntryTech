@@ -77,14 +77,19 @@ export const verifyKiosk = (req, res, next) => {
         }
     }
 
-    // Sin KIOSK_API_KEY configurada se conserva el acceso abierto para no
-    // romper terminales físicos ya desplegados, pero se deja constancia.
-    if (!config.kioskApiKey) {
-        if (config.isProduction) {
-            console.warn('⚠️  POST /api/acceso recibido sin autenticación: define KIOSK_API_KEY.');
-        }
-        return next();
-    }
+    /*
+      Sin credencial valida no se pasa.
 
-    return res.status(401).json({ mensaje: 'El terminal no está autorizado.' });
+      Antes existia aqui un camino abierto: si KIOSK_API_KEY no estaba
+      configurada, la peticion seguia adelante sin autenticar. Se dejo por
+      compatibilidad con terminales fisicos ya desplegados, pero en la practica
+      significaba que cualquiera en internet podia registrar entradas y salidas
+      con solo conocer un codigo de carnet. Comprobado contra el despliegue
+      real: una peticion anonima llegaba al controlador.
+
+      El valor por defecto pasa a ser denegar. Un terminal fisico se autentica
+      con KIOSK_API_KEY; el simulador web lo hace con la sesion del
+      administrador.
+    */
+    return res.status(401).json({ mensaje: 'El terminal no esta autorizado.' });
 };
