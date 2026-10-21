@@ -2,6 +2,63 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [2.2.0] — 21 de octubre de 2026
+
+Actualización de dependencias. La compilación de Render reportaba 6
+vulnerabilidades; el recuento real era de 7 en el backend y 14 en el frontend.
+Ambos quedan en **cero**.
+
+### Seguridad
+
+- **`proxy-addr` 2.0.7 → 2.0.8 (crítica).** Permitía falsificar la dirección
+  de origen mediante direcciones IPv6 que mapean IPv4. Era la más relevante
+  para este sistema: se usa `trust proxy` y el limitador de intentos se apoya
+  en esa dirección, de modo que un atacante podía saltarse el límite de fuerza
+  bruta del inicio de sesión.
+- **`bcrypt` 5.1.1 → 6.0.0 (2 críticas).** La versión anterior arrastraba
+  `@mapbox/node-pre-gyp` y con él `tar`, con doce avisos de recorrido de rutas.
+  La actualización **elimina 55 paquetes** de la cadena de instalación.
+
+  Antes de aplicarla se generó un hash con la versión 5 y se comprobó que
+  sigue validando con la 6, que una contraseña incorrecta sigue fallando y que
+  el formato del hash nuevo es idéntico (`$2b$10$`). Sin esa comprobación, un
+  cambio en el algoritmo habría dejado a todos los usuarios fuera del sistema.
+- **`express` 4.22.1 → 5.3.0 (1 moderada).** Express 4 fijaba `qs@6.14.2`, con
+  tres avisos de denegación de servicio, y no admitía una versión corregida.
+- `body-parser` 1.20.4 → 1.20.8 y `brace-expansion` 1.1.13 → 1.1.21.
+- Frontend: `vite` 5 → 7, `@vitejs/plugin-react` 4 → 5,
+  `@vitejs/plugin-basic-ssl` 1 → 2 y `react-router-dom` 6 → 7.
+
+  Se intentó primero `vite@8`, que la auditoría proponía: usa un motor de
+  compilación distinto (rolldown) y rompe la construcción. Se optó por la 7,
+  que conserva el motor actual y corrige igualmente el aviso de `esbuild`.
+
+  Conviene matizar que ese aviso de `esbuild` **solo afecta al servidor de
+  desarrollo**, no al sitio desplegado: permite que una web maliciosa consulte
+  el servidor local de quien esté programando.
+
+### Efecto secundario
+
+Desaparece el aviso `DEP0169` sobre `url.parse()` que aparecía en los
+registros de Render. No provenía del código del proyecto sino de dependencias:
+`@mapbox/node-pre-gyp`, `nopt`, `https-proxy-agent` y `agent-base`, todas
+retiradas con `bcrypt`, más `express` 4. En Express 5 la única aparición
+restante está dentro de un comentario de documentación.
+
+### Verificación
+
+Instalación limpia con `npm ci` en ambos proyectos, igual que hacen Render y
+Vercel, seguida de compilación y batería de pruebas.
+
+| Comprobación | Resultado |
+|---|---|
+| Auditoría backend | 7 → 0 |
+| Auditoría frontend | 14 → 0 |
+| Hash de bcrypt 5 validado con bcrypt 6 | Correcto |
+| 14 endpoints: códigos de estado, permisos por rol, validación, CORS | Sin cambios |
+| Enrutado con React Router 7 | Rutas, redirecciones por rol y página 404 correctas |
+| Compilación del frontend | Sin errores |
+
 ## [2.1.3] — 21 de octubre de 2026
 
 ### Seguridad
