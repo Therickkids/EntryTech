@@ -46,6 +46,19 @@ const config = {
       se obtiene al instante en https://api.nasa.gov
     */
     nasaApiKey: process.env.NASA_API_KEY || 'DEMO_KEY',
+
+    /*
+      Envío de correo para la recuperación de contraseña (Brevo).
+      Sin estos valores el sistema arranca igual, pero la recuperación queda
+      deshabilitada y lo indica de forma explícita, en lugar de fingir que el
+      correo salió.
+    */
+    brevoApiKey: process.env.BREVO_API_KEY || '',
+    mailFromEmail: process.env.MAIL_FROM_EMAIL || '',
+    mailFromNombre: process.env.MAIL_FROM_NOMBRE || 'EntryTech',
+
+    // Dirección pública del frontend: es la base del enlace del correo.
+    appUrl: process.env.APP_URL || 'https://entry-tech.vercel.app',
 };
 
 export default config;

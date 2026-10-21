@@ -191,7 +191,7 @@ const Login = () => {
                                 required
                             />
                             <div style={{ textAlign: 'right' }}>
-                                <Link to="/reset-password" style={{ color: 'var(--primary-color)', fontSize: '0.85rem', fontWeight: 600 }}>
+                                <Link to="/recuperar" style={{ color: 'var(--primary-color)', fontSize: '0.85rem', fontWeight: 600 }}>
                                     ¿Olvidaste tu contraseña?
                                 </Link>
                             </div>

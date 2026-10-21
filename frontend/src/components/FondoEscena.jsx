@@ -33,7 +33,14 @@ import api from '../services/api';
  *   debe estar ya puesto, no llegar con un fundido.
  */
 
-const RUTAS_PUBLICAS = ['/login', '/register', '/reset-password'];
+/*
+  Rutas sin sesión. Se comparan por prefijo porque el enlace de recuperación
+  lleva el token en la dirección: /recuperar/<token>.
+*/
+const RUTAS_PUBLICAS = ['/login', '/register', '/recuperar'];
+
+const esRutaPublica = (ruta) =>
+    RUTAS_PUBLICAS.some((base) => ruta === base || ruta.startsWith(`${base}/`));
 
 /*
   Colección local. Todas son de la NASA y de dominio público; los créditos
@@ -62,7 +69,7 @@ const rutaLocal = (nombre) => `/fondos/${nombre}.jpg`;
 
 const FondoEscena = () => {
     const location = useLocation();
-    const esPublica = RUTAS_PUBLICAS.includes(location.pathname);
+    const esPublica = esRutaPublica(location.pathname);
 
     const dia = diaDelCalendario();
     // Un desfase impar garantiza que las dos escenas del día nunca coincidan.

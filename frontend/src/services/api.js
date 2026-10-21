@@ -40,7 +40,7 @@ api.interceptors.response.use(
     (error) => {
         const estado = error.response?.status;
         const ruta = error.config?.url || '';
-        const esRutaPublica = /\/(login|register|reset-password)$/.test(ruta);
+        const esRutaPublica = /\/(login|register|recuperar|confirmar)$/.test(ruta);
 
         if (estado === 401 && !esRutaPublica) {
             cerrarSesion();

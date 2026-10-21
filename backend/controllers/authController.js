@@ -346,45 +346,14 @@ export const deleteUsuario = async (req, res) => {
     }
 };
 
-export const resetPassword = async (req, res) => {
-    const correo = normalizarCorreo(req.body.correo);
-    const cedula = normalizarTexto(req.body.cedula);
-    const { nuevaPassword } = req.body;
+/*
+  resetPassword se eliminó en la versión 2.4.
 
-    if (!correo || !cedula || !nuevaPassword) {
-        return res.status(400).json({ mensaje: 'Todos los campos son obligatorios.' });
-    }
-
-    const errorPassword = validarPassword(nuevaPassword);
-    if (errorPassword) {
-        return res.status(400).json({ mensaje: errorPassword });
-    }
-
-    try {
-        const userCheck = await pool.query(
-            'SELECT id FROM usuarios WHERE LOWER(correo) = $1 AND cedula = $2',
-            [correo, cedula]
-        );
-
-        if (userCheck.rows.length === 0) {
-            return res.status(400).json({ mensaje: 'Los datos no coinciden con ningún usuario registrado.' });
-        }
-
-        const hashedPassword = await bcrypt.hash(nuevaPassword, SALT_ROUNDS);
-
-        // Se actualiza por id en vez de por correo: con LOWER(correo) el índice
-        // único no aplicaba y una coincidencia múltiple habría afectado a varias filas.
-        await pool.query('UPDATE usuarios SET password = $1 WHERE id = $2', [
-            hashedPassword,
-            userCheck.rows[0].id,
-        ]);
-
-        return res.json({ mensaje: 'Contraseña actualizada exitosamente. Ya puedes iniciar sesión.' });
-    } catch (error) {
-        console.error('Error en resetPassword:', error);
-        return res.status(500).json({ mensaje: 'Error al restablecer la contraseña.' });
-    }
-};
+  Cambiaba la contraseña presentando correo y cédula. En Colombia la cédula no
+  es un dato secreto: aparece en contratos, formularios y filtraciones, de modo
+  que bastaban dos datos públicos para apoderarse de una cuenta. Lo sustituye
+  el flujo por correo de controllers/recuperacionController.js
+*/
 
 export const uploadFoto = async (req, res) => {
     const id = parseInt(req.params.id, 10);

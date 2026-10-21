@@ -6,7 +6,6 @@ import {
     crearUsuario,
     updateUsuario,
     deleteUsuario,
-    resetPassword,
     uploadFoto,
     getPerfil,
 } from '../controllers/authController.js';
@@ -17,6 +16,7 @@ import {
     getMisAccesos,
 } from '../controllers/accessController.js';
 import { getFondo } from '../controllers/fondoController.js';
+import { solicitarRecuperacion, confirmarRecuperacion } from '../controllers/recuperacionController.js';
 import { verifyToken, verifyAdmin, verifyKiosk } from '../middlewares/authMiddleware.js';
 import { rateLimit } from '../middlewares/rateLimit.js';
 
@@ -45,7 +45,14 @@ router.get('/fondo', rateLimit({ ventanaMs: 60 * 1000, maximo: 120, nombre: 'fon
 // Autenticación
 router.post('/register', limiteRegistro, register);
 router.post('/login', limiteLogin, login);
-router.post('/reset-password', limiteReset, resetPassword);
+/*
+  Recuperación de contraseña en dos pasos. Sustituye a /reset-password, que
+  cambiaba la contraseña presentando correo y cédula: en Colombia la cédula no
+  es un dato secreto, así que aquello permitía apoderarse de una cuenta
+  conociendo dos datos públicos.
+*/
+router.post('/recuperar', limiteReset, solicitarRecuperacion);
+router.post('/recuperar/confirmar', limiteReset, confirmarRecuperacion);
 
 // Perfil propio
 router.get('/perfil', verifyToken, getPerfil);

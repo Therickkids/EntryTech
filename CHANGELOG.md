@@ -2,6 +2,61 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [2.4.0] — 21 de octubre de 2026
+
+### Seguridad
+
+- **Recuperación de contraseña por correo.** Sustituye al mecanismo anterior,
+  que cambiaba la contraseña presentando correo y cédula.
+
+  En Colombia la cédula **no es un dato secreto**: aparece en contratos,
+  formularios y filtraciones. Bastaban dos datos públicos de una persona para
+  apoderarse de su cuenta. Era el punto más débil que le quedaba al sistema, y
+  estaba ahí desde la versión 1.0; la auditoría de la sección 25 lo mitigó
+  (límite de intentos, política de contraseña) pero no lo resolvió.
+
+  Ahora la prueba de identidad es el acceso al buzón registrado:
+
+  - `POST /api/recuperar` envía un enlace temporal al correo de la cuenta.
+    **Responde siempre lo mismo**, exista o no esa cuenta: lo contrario
+    permitiría averiguar qué direcciones están registradas probando una lista.
+  - `POST /api/recuperar/confirmar` canjea el enlace por una contraseña nueva.
+  - Se elimina `POST /api/reset-password`.
+
+- **Los tokens se guardan cifrados.** En la base de datos vive el SHA-256, no
+  el valor del enlace: quien leyera la tabla no podría usarla para entrar. Es
+  el mismo criterio que con las contraseñas.
+- **Un solo uso y una hora de validez.** Pedir un enlace nuevo anula los
+  anteriores que siguieran vigentes, para que no queden varios válidos a la vez.
+- El canje usa una transacción con bloqueo de fila, de modo que dos peticiones
+  simultáneas con el mismo enlace no puedan canjearlo las dos.
+- La comparación de huellas es en tiempo constante.
+- El nombre del usuario se escapa antes de insertarlo en el correo: lo elige él
+  mismo al registrarse.
+
+### Añadido
+
+- `migrations/002_tokens_recuperacion.sql`.
+- `services/correo.js`: envío por la API REST de Brevo con `fetch`, **sin
+  dependencias nuevas**. Se eligió Brevo porque su plan gratuito permite
+  verificar una sola dirección de remitente, sin exigir dominio propio: el
+  sistema se publica bajo un subdominio de Vercel.
+- Pantalla `/recuperar/:token` para elegir la contraseña nueva.
+- **17 pruebas más** (58 en total): generación y unicidad del token, huella,
+  comparación en tiempo constante, vigencia, construcción del enlace y
+  contenido del correo, incluido el escape del nombre.
+
+### Configuración necesaria
+
+| Variable | Para qué |
+|---|---|
+| `BREVO_API_KEY` | Clave de la API de envío |
+| `MAIL_FROM_EMAIL` | Dirección verificada del remitente |
+| `APP_URL` | Base del enlace que recibe el usuario |
+
+Sin ellas el sistema arranca igual, pero la recuperación responde 503 y lo
+indica, en lugar de fingir que el correo salió.
+
 ## [2.3.0] — 21 de octubre de 2026
 
 ### Añadido

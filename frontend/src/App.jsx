@@ -9,6 +9,7 @@ import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
+import RestablecerPassword from './pages/RestablecerPassword';
 import Dashboard from './pages/Dashboard';
 import Carnet from './pages/Carnet';
 import KioskSimulator from './pages/KioskSimulator';
@@ -78,7 +79,9 @@ function App() {
                         <Route path="/" element={<Inicio />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
-                        <Route path="/reset-password" element={<ForgotPassword />} />
+                        <Route path="/recuperar" element={<ForgotPassword />} />
+                        {/* El token llega en el enlace del correo. */}
+                        <Route path="/recuperar/:token" element={<RestablecerPassword />} />
 
                         <Route path="/dashboard" element={<AdminRoute><ConNavbar><Dashboard /></ConNavbar></AdminRoute>} />
                         <Route path="/usuarios" element={<AdminRoute><ConNavbar><Usuarios /></ConNavbar></AdminRoute>} />

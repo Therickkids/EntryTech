@@ -1,64 +1,71 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { MailCheck } from 'lucide-react';
 import api, { mensajeDeError } from '../services/api';
 
-const PASSWORD_MIN = 8;
-
+/**
+ * Paso 1 de la recuperación: pedir el enlace.
+ *
+ * La versión anterior cambiaba la contraseña aquí mismo, presentando correo y
+ * cédula. En Colombia la cédula no es un dato secreto —aparece en contratos,
+ * formularios y filtraciones—, de modo que bastaban dos datos públicos para
+ * apoderarse de una cuenta. Ahora el formulario solo envía un enlace temporal
+ * al correo registrado: la prueba de identidad pasa a ser el acceso al buzón.
+ */
 const ForgotPassword = () => {
     const [correo, setCorreo] = useState('');
-    const [cedula, setCedula] = useState('');
-    const [nuevaPassword, setNuevaPassword] = useState('');
-    const [confirmacion, setConfirmacion] = useState('');
+    const [enviado, setEnviado] = useState(false);
     const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(null);
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
 
-    const handleReset = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
-        setSuccess(null);
-
-        // Validación previa: antes se enviaba cualquier contraseña, incluida una
-        // de un solo carácter, y no existía campo de confirmación, así que un
-        // error de tecleo dejaba al usuario fuera de su propia cuenta.
-        if (nuevaPassword.length < PASSWORD_MIN || !/[a-zA-Z]/.test(nuevaPassword) || !/\d/.test(nuevaPassword)) {
-            setError(`La contraseña debe tener al menos ${PASSWORD_MIN} caracteres y combinar letras y números.`);
-            return;
-        }
-        if (nuevaPassword !== confirmacion) {
-            setError('Las contraseñas no coinciden.');
-            return;
-        }
-
         setLoading(true);
         try {
-            const res = await api.post('/reset-password', {
-                correo: correo.trim(),
-                cedula: cedula.trim(),
-                nuevaPassword,
-            });
-            setSuccess(res.data.mensaje);
-            setTimeout(() => navigate('/login', { replace: true }), 2500);
+            await api.post('/recuperar', { correo: correo.trim() });
+            setEnviado(true);
         } catch (err) {
-            setError(mensajeDeError(err, 'Error al restablecer la contraseña.'));
+            setError(mensajeDeError(err, 'No se pudo procesar la solicitud.'));
         } finally {
             setLoading(false);
         }
     };
 
+    if (enviado) {
+        return (
+            <div className="auth-container">
+                <div className="auth-card animate-scale-in">
+                    <div style={{ color: 'var(--success)', display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                        <MailCheck size={40} />
+                    </div>
+                    <h2 style={{ marginBottom: '0.75rem' }}>Revisa tu correo</h2>
+                    <p style={{ color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: '1rem' }}>
+                        Si ese correo corresponde a una cuenta, te enviamos un enlace para
+                        restablecer la contraseña. Revisa también la carpeta de no deseados.
+                    </p>
+                    <p className="form-hint" style={{ marginBottom: 'var(--paso-3)' }}>
+                        El enlace es válido durante una hora y solo puede usarse una vez.
+                    </p>
+                    <Link className="btn btn-secondary btn-block" to="/login">
+                        Volver al inicio de sesión
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="auth-container">
-            <div className="auth-card">
+            <div className="auth-card animate-scale-in">
                 <h2 style={{ marginBottom: '0.5rem' }}>Recuperar contraseña</h2>
                 <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--paso-3)', fontSize: '0.9rem' }}>
-                    Ingresa tus datos para crear una nueva contraseña
+                    Te enviaremos un enlace a tu correo para que elijas una nueva.
                 </p>
 
                 {error && <div className="alerta alerta-error" role="alert">{error}</div>}
-                {success && <div className="alerta alerta-exito" role="status">{success}</div>}
 
-                <form onSubmit={handleReset} noValidate>
+                <form onSubmit={handleSubmit} noValidate>
                     <div className="form-group">
                         <label className="form-label" htmlFor="rec-correo">Correo electrónico</label>
                         <input
@@ -73,48 +80,8 @@ const ForgotPassword = () => {
                         />
                     </div>
 
-                    <div className="form-group">
-                        <label className="form-label" htmlFor="rec-cedula">Cédula de identidad</label>
-                        <input
-                            id="rec-cedula"
-                            type="text"
-                            className="form-control"
-                            inputMode="numeric"
-                            value={cedula}
-                            onChange={(e) => setCedula(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label" htmlFor="rec-password">Nueva contraseña</label>
-                        <input
-                            id="rec-password"
-                            type="password"
-                            className="form-control"
-                            autoComplete="new-password"
-                            value={nuevaPassword}
-                            onChange={(e) => setNuevaPassword(e.target.value)}
-                            required
-                        />
-                        <span className="form-hint">Mínimo {PASSWORD_MIN} caracteres, con letras y números.</span>
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label" htmlFor="rec-confirmacion">Confirmar contraseña</label>
-                        <input
-                            id="rec-confirmacion"
-                            type="password"
-                            className="form-control"
-                            autoComplete="new-password"
-                            value={confirmacion}
-                            onChange={(e) => setConfirmacion(e.target.value)}
-                            required
-                        />
-                    </div>
-
                     <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-                        {loading ? 'Procesando...' : 'Cambiar contraseña'}
+                        {loading ? 'Enviando...' : 'Enviar enlace'}
                     </button>
                 </form>
 
